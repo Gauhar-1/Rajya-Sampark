@@ -162,20 +162,37 @@ export default function AdminPage() {
     setIsUserViewDialogOpen(true);
   };
 
-  const handleRoleChange = (userId: string, newRole: Role) => {
-    setAdminUsers(prev => prev.map(u => u.uid === userId ? { ...u, role: newRole } : u));
-    toast({ title: "User Role Updated", description: `User ${userId} role changed to ${newRole}.` });
+  const handleRoleChange = async(id: string, newRole: Role) => {
+
+    const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/profile/${id}/role`, { newRole }, {
+      headers:{
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if(response.data.success){
+      const { user } = response.data;
+      setAdminUsers(prev => prev.map(u => u.uid === id ? { ...u, role: newRole } : u));
+      toast({ title: "User Role Updated", description: `User ${user.name} role changed to ${newRole}.` });
+    }
+
   };
 
-  const handleStatusChange = (userId: string, newStatus: UserStatus) => {
-    setAdminUsers(prev => prev.map(u => u.uid === userId ? { ...u, status: newStatus } : u));
-    toast({ title: "User Status Updated", description: `User ${userId} status changed to ${newStatus}.` });
+  const handleStatusChange = async(id: string, newStatus: UserStatus) => {
+
+     const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/profile/${id}/status`,{ newStatus}, {
+      headers:{
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+     if(response.data.success){
+      const { user } = response.data;
+      setAdminUsers(prev => prev.map(u => u.uid === id ? { ...u, status: newStatus } : u));
+      toast({ title: "User Status Updated", description: `User ${user.name} Status changed to ${newStatus}.` });
+    }
   };
 
-  const handleVerificationToggle = (userId: string) => {
-    setAdminUsers(prev => prev.map(u => u.uid === userId && u.role === 'CANDIDATE' ? { ...u, verified: !u.verified } : u));
-    toast({ title: "Candidate Verification Updated", description: `User ${userId} verification status toggled.` });
-  };
 
    // Candidate actions
   const openCandidateDialog = (candidate: Candidate | null) => {
