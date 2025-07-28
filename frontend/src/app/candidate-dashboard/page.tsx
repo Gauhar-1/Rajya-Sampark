@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { RequiredAuth } from '@/components/auth/RequiredAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import axios from 'axios';
 
 // Use INTEREST_AREAS for labels
 function getInterestLabel(interestKey: string): string {
@@ -32,7 +33,7 @@ function getStatusColor(status: MonitoredVolunteer['status']): string {
   switch (status) {
     case 'Active':
       return 'bg-green-500';
-    case 'Pending Review':
+    case 'Pending':
       return 'bg-yellow-500';
     case 'Inactive':
       return 'bg-red-500';
@@ -51,9 +52,9 @@ function getTaskStatusVariant(status: AssignedTask['status']): 'default' | 'seco
 }
 
 export default function CandidateDashboardPage() {
-  const { user } = useAuth(); // Assuming candidate name is on user object
+  const {  token } = useAuth(); // Assuming candidate name is on user object
   const { toast } = useToast();
-  const [volunteers, setVolunteers] = useState<MonitoredVolunteer[]>(mockMonitoredVolunteers);
+  const [volunteers, setVolunteers] = useState<MonitoredVolunteer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [interestFilter, setInterestFilter] = useState('all');
   const [isCreateGroupChatOpen, setIsCreateGroupChatOpen] = useState(false);
@@ -66,12 +67,36 @@ export default function CandidateDashboardPage() {
     return ['all', ...INTEREST_AREAS.map(area => area.id)];
   }, []);
 
+
+   useEffect(()=>{
+    if(!token){
+       return;
+    }
+
+    const getAllVolunteers = async()=>{
+      const response =await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/volunteer`,{
+        headers:{
+            "Authorization": `Bearer ${token}`,
+        }
+      });
+
+      if(response.data.success){
+        setVolunteers(response.data.volunteers)
+      }
+    }
+
+    getAllVolunteers();
+
+   },[token]);
+
+
   // Volunteers for the main roster (Active)
   const activeVolunteers = useMemo(() => {
+     
     return volunteers.filter(volunteer => {
       const matchesSearch =
         volunteer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (volunteer.email && volunteer.email.toLowerCase().includes(searchTerm.toLowerCase()));
+        (volunteer.phone && volunteer.phone.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesInterest = interestFilter === 'all' || volunteer.interests.includes(interestFilter);
       return volunteer.status === 'Active' && matchesSearch && matchesInterest;
     });
@@ -80,13 +105,12 @@ export default function CandidateDashboardPage() {
   // Volunteers for the request queue (Pending Review for this candidate)
   const pendingRequests = useMemo(() => {
     // In a real app, user.name would come from the signed-in candidate's profile
-    const candidateName = user?.name || 'Alice Wonderland'; // Using placeholder
+
     return volunteers.filter(v => 
-        v.status === 'Pending Review' && 
-        v.volunteerTarget === 'candidate' &&
-        v.specificCandidateName === candidateName
+        v.status === 'Pending'  && 
+        v.volunteerTarget === 'candidate'
     );
-  }, [volunteers, user]);
+  }, [volunteers]);
 
 
   const handleCreateGroupChat = (formData: CreateGroupChatFormData) => {
@@ -102,17 +126,29 @@ export default function CandidateDashboardPage() {
     setIsCreateGroupChatOpen(false); 
   };
 
-  const handleRequestAction = (volunteerId: string, action: 'accept' | 'reject') => {
-    setVolunteers(prev => prev.map(v => {
-      if (v.id === volunteerId) {
-        return { ...v, status: action === 'accept' ? 'Active' : 'Inactive' };
-      }
-      return v;
-    }));
-    toast({
-      title: `Request ${action === 'accept' ? 'Accepted' : 'Rejected'}`,
-      description: `The volunteer has been moved to the appropriate list.`,
+  const handleRequestAction = async(volunteerId: string, action: 'accept' | 'reject') => {
+
+    const status =  action === 'accept' ? 'Active' : 'Inactive';
+
+    const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/volunteer/${volunteerId}/status`, { status },{
+        headers:{
+            "Authorization": `Bearer ${token}`
+        }
     });
+
+    if(response.data.success){
+        setVolunteers(prev => prev.map(v => {
+          if (v._id === volunteerId) {
+            return { ...v, status };
+          }
+          return v;
+        }));
+        toast({
+          title: `Request ${action === 'accept' ? 'Accepted' : 'Rejected'}`,
+          description: `The volunteer has been moved to the appropriate list.`,
+        });
+    }
+
   };
 
   const handleAssignTask = () => {
@@ -120,13 +156,13 @@ export default function CandidateDashboardPage() {
         toast({ title: 'Error', description: 'Please provide a task title and select a volunteer.', variant: 'destructive' });
         return;
     }
-    const volunteer = activeVolunteers.find(v => v.id === newTask.volunteerId);
+    const volunteer = activeVolunteers.find(v => v._id === newTask.volunteerId);
     if (!volunteer) return;
 
     const newAssignedTask: AssignedTask = {
         id: `task-${Date.now()}`,
         title: newTask.title,
-        volunteerId: volunteer.id,
+        volunteerId: volunteer._id,
         volunteerName: volunteer.fullName,
         status: 'To Do',
         assignedAt: new Date().toISOString(),
@@ -194,9 +230,9 @@ export default function CandidateDashboardPage() {
                                 <TableBody>
                                     {pendingRequests.length > 0 ? (
                                         pendingRequests.map(req => (
-                                            <TableRow key={req.id}>
+                                            <TableRow key={req._id}>
                                                 <TableCell className="font-medium">{req.fullName}</TableCell>
-                                                <TableCell>{req.email || 'N/A'}</TableCell>
+                                                <TableCell>{req.phone || 'N/A'}</TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-wrap gap-1">
                                                         {req.interests.map(interestKey => (
@@ -208,10 +244,10 @@ export default function CandidateDashboardPage() {
                                                 </TableCell>
                                                 <TableCell>{req.availability}</TableCell>
                                                 <TableCell className="flex gap-2">
-                                                    <Button variant="outline" size="sm" onClick={() => handleRequestAction(req.id, 'accept')}>
+                                                    <Button variant="outline" size="sm" onClick={() => handleRequestAction(req._id, 'accept')}>
                                                         <CheckCircle className="h-4 w-4 mr-1 text-green-500"/> Accept
                                                     </Button>
-                                                    <Button variant="outline" size="sm" onClick={() => handleRequestAction(req.id, 'reject')}>
+                                                    <Button variant="outline" size="sm" onClick={() => handleRequestAction(req._id, 'reject')}>
                                                         <XCircle className="h-4 w-4 mr-1 text-red-500"/> Reject
                                                     </Button>
                                                 </TableCell>
@@ -272,7 +308,6 @@ export default function CandidateDashboardPage() {
                         <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
                             <TableHead className="hidden md:table-cell">Phone</TableHead>
                             <TableHead>Interests</TableHead>
                             <TableHead className="hidden lg:table-cell">Availability</TableHead>
@@ -282,9 +317,8 @@ export default function CandidateDashboardPage() {
                         <TableBody>
                         {activeVolunteers.length > 0 ? (
                             activeVolunteers.map(volunteer => (
-                            <TableRow key={volunteer.id}>
+                            <TableRow key={volunteer._id}>
                                 <TableCell className="font-medium">{volunteer.fullName}</TableCell>
-                                <TableCell>{volunteer.email || 'N/A'}</TableCell>
                                 <TableCell className="hidden md:table-cell">{volunteer.phone || 'N/A'}</TableCell>
                                 <TableCell>
                                 <div className="flex flex-wrap gap-1">
@@ -355,7 +389,7 @@ export default function CandidateDashboardPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {activeVolunteers.map(v => (
-                                                    <SelectItem key={v.id} value={v.id}>{v.fullName}</SelectItem>
+                                                    <SelectItem key={v._id} value={v._id}>{v.fullName}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>

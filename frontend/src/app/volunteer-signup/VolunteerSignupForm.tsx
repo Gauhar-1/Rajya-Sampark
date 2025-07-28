@@ -15,7 +15,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Send, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { volunteerSignupAction } from './actions';
 import {
   Form,
   FormField,
@@ -24,6 +23,8 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 const interestAreas = [
   { id: 'canvassing', label: 'Canvassing (Door-to-door)' },
@@ -44,7 +45,6 @@ const availabilityOptions = [
 
 const formSchema = z.object({
   fullName: z.string().min(3, { message: 'Full name must be at least 3 characters.' }).max(100),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
   phone: z.string().optional().refine(val => !val || /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(val), {
     message: "Invalid phone number format."
   }),
@@ -77,16 +77,16 @@ type FormData = z.infer<typeof formSchema>;
 
 export function VolunteerSignupForm() {
   const { toast } = useToast();
+  const { token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: '',
-      email: '',
       phone: '',
       volunteerTarget: undefined,
-      specificCandidateName: '',
+      specificCandidateName: undefined,
       interests: [],
       availability: '',
       message: '',
@@ -98,8 +98,12 @@ export function VolunteerSignupForm() {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsLoading(true);
     try {
-      const result = await volunteerSignupAction(data);
-      if (result.success) {
+      const result = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/volunteer`, data, {
+        headers:{
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (result.data.success) {
         toast({
           title: 'Signup Successful!',
           description: "Thank you for volunteering. We'll be in touch soon.",
@@ -107,13 +111,7 @@ export function VolunteerSignupForm() {
           action: <CheckCircle className="text-green-500" />,
         });
         form.reset();
-      } else {
-        toast({
-          title: 'Signup Failed',
-          description: result.error || 'An unexpected error occurred.',
-          variant: 'destructive',
-        });
-      }
+      } 
     } catch (e) {
       toast({
         title: 'Signup Error',
@@ -141,13 +139,7 @@ export function VolunteerSignupForm() {
             </div>
 
             <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" {...form.register('email')} placeholder="e.g., jane.doe@example.com" />
-              {form.formState.errors.email && <p className="text-sm text-destructive mt-1">{form.formState.errors.email.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Phone Number (Optional)</Label>
+              <Label htmlFor="phone">Phone Number</Label>
               <Input id="phone" type="tel" {...form.register('phone')} placeholder="e.g., (555) 123-4567" />
               {form.formState.errors.phone && <p className="text-sm text-destructive mt-1">{form.formState.errors.phone.message}</p>}
             </div>

@@ -3,7 +3,7 @@ const app = express();
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
-import cartRoutes from './routes/cartRoutes.js';
+import volunteerRoutes from './routes/volunteerRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import candidateRoutes from './routes/candidateRoutes.js';
 import dotenv from 'dotenv';
@@ -41,6 +41,7 @@ app.use(
 app.use('/api/auth', authRoutes);
 app.use('/api/candidate', candidateRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/volunteer', volunteerRoutes);
 // app.use('/api/products', productRoutes);
 // app.use('/api/cart', cartRoutes);
 // app.use('/api/order', orderRoutes);

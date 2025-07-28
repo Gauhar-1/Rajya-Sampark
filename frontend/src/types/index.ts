@@ -121,9 +121,8 @@ export interface Campaign {
 
 
 export interface VolunteerSignup {
-  id: string;
+  _id: string;
   fullName: string;
-  email?: string;
   phone?: string;
   volunteerTarget: 'general' | 'candidate';
   specificCandidateName?: string;
@@ -134,7 +133,7 @@ export interface VolunteerSignup {
 }
 
 export interface MonitoredVolunteer extends VolunteerSignup {
-  status: 'Active' | 'Pending Review' | 'Inactive';
+  status: 'Active' | 'Pending' | 'Inactive';
 }
 
 
