@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,11 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RequiredAuth } from '@/components/auth/RequiredAuth';
 import { mockVolunteerTasks, mockVolunteerPosts, mockVolunteerCampaigns, mockVolunteerGroupChats, mockCampaigns } from '@/lib/mockData';
-import type { VolunteerTask, VolunteerPost, VolunteerCampaign, GroupChat, Campaign } from '@/types';
+import type { VolunteerTask, VolunteerPost, VolunteerCampaign, GroupChat, Campaign, AssignedTask } from '@/types';
 import { ListTodo, Edit, Trash2, Megaphone, Newspaper, MessageSquare, ChevronRight, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CreateCampaignForm } from '@/components/forms/CreateCampaignForm';
+import { useAuth } from '@/contexts/AuthContext';
+import axios from 'axios';
 
 function getStatusVariant(status: VolunteerTask['status']): 'default' | 'secondary' | 'destructive' | 'outline' {
   switch (status) {
@@ -27,16 +29,45 @@ function getStatusVariant(status: VolunteerTask['status']): 'default' | 'seconda
 
 export default function VolunteerDashboardPage() {
   const { toast } = useToast();
-  const [tasks, setTasks] = useState<VolunteerTask[]>(mockVolunteerTasks);
+  const { token } = useAuth();
+  const [tasks, setTasks] = useState<AssignedTask[]>([]);
   const [posts, setPosts] = useState<VolunteerPost[]>(mockVolunteerPosts);
   const [campaigns, setCampaigns] = useState<Campaign[]>(mockCampaigns);
   const [groupChats, setGroupChats] = useState<GroupChat[]>(mockVolunteerGroupChats);
     const [isCampaignDialogOpen, setIsCampaignDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
 
-  const handleStatusChange = (taskId: string, newStatus: VolunteerTask['status']) => {
-    setTasks(prev => prev.map(task => task.id === taskId ? { ...task, status: newStatus } : task));
-    toast({ title: "Task Status Updated!", description: `Task is now "${newStatus}".` });
+  // tasks
+  useEffect(()=>{
+    if(!token) return;
+
+    const getTasks = async() =>{
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task/volunteer`,{
+        headers:{
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if(response.data.success){
+        setTasks(response.data.tasks);
+      }
+    }
+    getTasks();
+  },[token]);
+
+  const handleStatusChange = async(taskId: string, newStatus: VolunteerTask['status']) => {
+
+    const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task/${taskId}/status`, {newStatus},{
+      headers:{
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if(response.data.success){
+      setTasks(prev => prev.map(task => task._id === taskId ? { ...task, status: newStatus } : task));
+      toast({ title: "Task Status Updated!", description: `Task is now "${newStatus}".` });
+    }
+
   };
   
    const handleEditPost = (id: string) => {
@@ -118,16 +149,16 @@ export default function VolunteerDashboardPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Task</TableHead>
-                      <TableHead>Assigned By</TableHead>
+                      <TableHead>Assigned At</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {tasks.length > 0 ? tasks.map(task => (
-                      <TableRow key={task.id}>
+                      <TableRow key={task._id}>
                         <TableCell className="font-medium">{task.title}</TableCell>
-                        <TableCell>{task.assignedBy}</TableCell>
+                        <TableCell>{new Date(task.assignedAt).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusVariant(task.status)}>{task.status}</Badge>
                         </TableCell>
@@ -135,14 +166,14 @@ export default function VolunteerDashboardPage() {
                            <Button 
                                 variant="outline" 
                                 size="sm" 
-                                onClick={() => handleStatusChange(task.id, 'In Progress')} 
+                                onClick={() => handleStatusChange(task._id, 'In Progress')} 
                                 disabled={task.status === 'In Progress'}>
                                 Start
                             </Button>
                            <Button 
                                 variant="outline" 
                                 size="sm" 
-                                onClick={() => handleStatusChange(task.id, 'Completed')} 
+                                onClick={() => handleStatusChange(task._id, 'Completed')} 
                                 disabled={task.status === 'Completed'}>
                                 Complete
                            </Button>
