@@ -213,7 +213,7 @@ export interface VolunteerPost {
 }
 
 export interface AssignedTask {
-    id: string;
+    _id: string;
     title: string;
     volunteerName: string;
     volunteerId: string;

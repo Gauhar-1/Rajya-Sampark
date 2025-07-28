@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockMonitoredVolunteers, mockAssignedTasks } from '@/lib/mockData';
 import type { MonitoredVolunteer, GroupChat, AssignedTask } from '@/types';
 import { LayoutDashboard, Users, Filter, Search as SearchIcon, MessageSquarePlus, MessageSquare, Eye, CheckCircle, XCircle, UserPlus, ListOrdered, PlusCircle, ListTodo } from 'lucide-react';
 import { CreateGroupChatForm, type CreateGroupChatFormData } from '@/components/forms/CreateGroupChatForm';
@@ -59,7 +58,7 @@ export default function CandidateDashboardPage() {
   const [interestFilter, setInterestFilter] = useState('all');
   const [isCreateGroupChatOpen, setIsCreateGroupChatOpen] = useState(false);
   const [createdGroupChats, setCreatedGroupChats] = useState<GroupChat[]>([]);
-  const [assignedTasks, setAssignedTasks] = useState<AssignedTask[]>(mockAssignedTasks);
+  const [assignedTasks, setAssignedTasks] = useState<AssignedTask[]>([]);
   const [isAssignTaskOpen, setIsAssignTaskOpen] = useState(false);
   const [newTask, setNewTask] = useState<{ title: string; volunteerId: string }>({ title: '', volunteerId: '' });
 
@@ -151,7 +150,30 @@ export default function CandidateDashboardPage() {
 
   };
 
-  const handleAssignTask = () => {
+  // Task action
+
+  useEffect(()=>{
+    if(!token){
+       return;
+    }
+
+    const getAllTask = async()=>{
+      const response =await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task`,{
+        headers:{
+            "Authorization": `Bearer ${token}`,
+        }
+      });
+
+      if(response.data.success){
+        setAssignedTasks(response.data.tasks)
+      }
+    }
+
+    getAllTask();
+
+   },[token]);
+
+  const handleAssignTask = async() => {
     if (!newTask.title || !newTask.volunteerId) {
         toast({ title: 'Error', description: 'Please provide a task title and select a volunteer.', variant: 'destructive' });
         return;
@@ -159,18 +181,25 @@ export default function CandidateDashboardPage() {
     const volunteer = activeVolunteers.find(v => v._id === newTask.volunteerId);
     if (!volunteer) return;
 
-    const newAssignedTask: AssignedTask = {
-        id: `task-${Date.now()}`,
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task`,{
         title: newTask.title,
         volunteerId: volunteer._id,
         volunteerName: volunteer.fullName,
-        status: 'To Do',
         assignedAt: new Date().toISOString(),
-    };
-    setAssignedTasks(prev => [newAssignedTask, ...prev]);
-    toast({ title: 'Task Assigned!', description: `Task "${newTask.title}" assigned to ${volunteer.fullName}.`});
-    setIsAssignTaskOpen(false);
-    setNewTask({ title: '', volunteerId: '' });
+    },{
+        headers:{
+            'Authorization':`Bearer ${token}`
+        }
+    });
+
+    if(response.data.success){
+        const { task } = response.data;
+        setAssignedTasks(prev => [task, ...prev]);
+        toast({ title: 'Task Assigned!', description: `Task "${newTask.title}" assigned to ${volunteer.fullName}.`});
+        setIsAssignTaskOpen(false);
+        setNewTask({ title: '', volunteerId: '' });
+    }
+
   };
 
   return (
@@ -415,7 +444,7 @@ export default function CandidateDashboardPage() {
                             <TableBody>
                                 {assignedTasks.length > 0 ? (
                                     assignedTasks.map(task => (
-                                        <TableRow key={task.id}>
+                                        <TableRow key={task._id}>
                                             <TableCell className="font-medium">{task.title}</TableCell>
                                             <TableCell>{task.volunteerName}</TableCell>
                                             <TableCell>

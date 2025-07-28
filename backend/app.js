@@ -4,7 +4,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import volunteerRoutes from './routes/volunteerRoutes.js';
-import orderRoutes from './routes/orderRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
 import candidateRoutes from './routes/candidateRoutes.js';
 import dotenv from 'dotenv';
 import cors from "cors"
@@ -42,7 +42,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/candidate', candidateRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/volunteer', volunteerRoutes);
-// app.use('/api/products', productRoutes);
+app.use('/api/task', taskRoutes);
 // app.use('/api/cart', cartRoutes);
 // app.use('/api/order', orderRoutes);
 
