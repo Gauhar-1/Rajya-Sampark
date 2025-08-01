@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { mockCampaigns as initialMockCampaigns } from '@/lib/mockData';
 import type { Campaign } from '@/types';
 import { Search, Filter, TrendingUp, MapPin, ChevronRight, PlusCircle } from 'lucide-react';
+import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 function CampaignCard({ campaign }: { campaign: Campaign }) {
   return (
@@ -23,7 +25,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
             alt={campaign.name}
             layout="fill"
             objectFit="cover"
-            data-ai-hint={campaign.dataAiHint || "campaign event"}
+            data-ai-hint={ "campaign event"}
           />
         </div>
       )}
@@ -38,7 +40,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
         <p className="text-sm text-muted-foreground line-clamp-3">{campaign.description}</p>
       </CardContent>
       <CardFooter className="p-4 border-t">
-        <Link href={`/campaigns/${campaign.id}`}>
+        <Link href={`/campaigns/${campaign._id}`}>
           <Button variant="outline" size="sm" className="w-full">
             Learn More <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
@@ -49,11 +51,32 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
 }
 
 export default function CampaignDiscoveryPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>(initialMockCampaigns);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
   const [partyFilter, setPartyFilter] = useState('all');
   const [sortBy, setSortBy] = useState('popularity');
+  const { token } = useAuth();
+  
+
+  // Get Campaigns
+  useEffect(()=>{
+    if(!token){
+      return;
+    }
+    const getAllCampaigns = async()=>{
+       const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, {
+        headers:{
+          "Authorization": `Bearer ${token}`,
+        }
+       });
+       if(response.data.success){
+        setCampaigns(response.data.campaigns);
+       }
+    }
+
+    getAllCampaigns();
+  },[token]);
 
   const parties = useMemo(() => ['all', ...new Set(campaigns.map(c => c.party).filter(Boolean) as string[])], [campaigns]);
   const locations = useMemo(() => ['all', ...new Set(campaigns.map(c => c.location).filter(Boolean) as string[])], [campaigns]);
@@ -70,7 +93,7 @@ export default function CampaignDiscoveryPage() {
     if (sortBy === 'popularity') {
       filtered.sort((a, b) => b.popularityScore - a.popularityScore);
     } else if (sortBy === 'newest') {
-      filtered.sort((a, b) => parseInt(b.id.replace('camp','')) - parseInt(a.id.replace('camp','')));
+      filtered.sort((a, b) => parseInt(b._id.replace('camp','')) - parseInt(a._id.replace('camp','')));
     } else if (sortBy === 'name') {
       filtered.sort((a,b) => a.name.localeCompare(b.name));
     }
@@ -143,7 +166,7 @@ export default function CampaignDiscoveryPage() {
       {filteredAndSortedCampaigns.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAndSortedCampaigns.map((campaign) => (
-            <CampaignCard key={campaign.id} campaign={campaign} />
+            <CampaignCard key={campaign._id} campaign={campaign} />
           ))}
         </div>
       ) : (

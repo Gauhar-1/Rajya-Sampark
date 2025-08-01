@@ -78,7 +78,7 @@ export default function VolunteerDashboardPage() {
     if (type === 'Post') {
       setPosts(prev => prev.filter(p => p.id !== id));
     } else if (type === 'Campaign') {
-      setCampaigns(prev => prev.filter(c => c.id !== id));
+      setCampaigns(prev => prev.filter(c => c._id !== id));
     }
     toast({ title: `${type} Deleted`, description: `The item has been removed from your list.` });
   };
@@ -117,7 +117,7 @@ export default function VolunteerDashboardPage() {
 
       if(response.data.success){
         const { campaign } = response.data;
-        setCampaigns(prev => prev.map(c => c.id === editingCampaign.id ? campaign : c));
+        setCampaigns(prev => prev.map(c => c._id === editingCampaign._id ? campaign : c));
         toast({ title: "Campaign Updated", description: `Campaign "${campaignData.name}" has been updated.` });
       }
     } else {
@@ -281,7 +281,7 @@ export default function VolunteerDashboardPage() {
                   </TableHeader>
                   <TableBody>
                     {campaigns.length > 0 ? campaigns.map(campaign => (
-                       <TableRow key={campaign.id}>
+                       <TableRow key={campaign._id}>
                         <TableCell className="font-medium">{campaign.name}</TableCell>
                         <TableCell>{campaign.location}</TableCell>
                         <TableCell>{new Date(campaign.createdAt).toLocaleDateString()}</TableCell>
@@ -289,7 +289,7 @@ export default function VolunteerDashboardPage() {
                            <Button variant="ghost" size="icon" onClick={() => openCampaignDialog(campaign)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                           <Button variant="ghost" size="icon" onClick={() => handleDelete('Campaign', campaign.id)}>
+                           <Button variant="ghost" size="icon" onClick={() => handleDelete('Campaign', campaign._id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </TableCell>

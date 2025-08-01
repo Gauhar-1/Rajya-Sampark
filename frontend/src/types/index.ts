@@ -107,7 +107,7 @@ export interface ElectionEvent {
 }
 
 export interface Campaign {
-  id: string;
+  _id: string;
   name: string;
   party?: string;
   imageUrl?: string;

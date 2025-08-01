@@ -9,11 +9,33 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, ArrowLeft, MapPin, Users, Tag, TrendingUp, Building } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
+import { Campaign } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import axios from 'axios';
 
 export default function CampaignProfilePage() {
   const params = useParams();
   const campaignId = typeof params.id === 'string' ? params.id : '';
-  const campaign = getCampaignById(campaignId) || mockCampaigns.find(c => c.id === campaignId); 
+  const [ campaign, setCampaign ] =useState<Campaign>();
+  const { token } = useAuth();
+
+  useEffect(()=>{
+    if(!token) return;
+
+    const getCampaign = async()=>{
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign/${campaignId}`,{
+          headers:{
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if(response.data.success){
+          setCampaign(response.data.campaign);
+        }
+    }
+    getCampaign();
+  },[token, campaignId]);
 
   if (!campaign) {
     return (
@@ -50,7 +72,7 @@ export default function CampaignProfilePage() {
                   alt={campaign.name}
                   layout="fill"
                   objectFit="cover"
-                  data-ai-hint={campaign.dataAiHint || "campaign image"}
+                  data-ai-hint={"campaign image"}
                 />
               </div>
             )}

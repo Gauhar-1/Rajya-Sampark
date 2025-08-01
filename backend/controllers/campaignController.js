@@ -65,3 +65,24 @@ export const updateCampaign = async(req, res)=>{
    res.status(200).json({ campaign, success: true });
 
 }
+
+export const getAllCampaigns = async(req,  res)=>{
+   const campaigns = await Campaign.find();
+
+   res.status(200).json({ success: true, campaigns});
+}
+
+export const getCampaignById = async(req, res) =>{
+   const { id } = req.params;
+
+   if(!id){
+      res.status(404).json({ message: "Campaign Id not found"});
+   }
+
+   const campaign = await Campaign.findById(id);
+   if(!campaign){
+      res.status(500).json({ message: "Could not find campaign"});
+   }
+
+   res.status(200).json({ success: true, campaign });
+}
