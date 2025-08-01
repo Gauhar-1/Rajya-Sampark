@@ -32,7 +32,7 @@ export default function VolunteerDashboardPage() {
   const { token } = useAuth();
   const [tasks, setTasks] = useState<AssignedTask[]>([]);
   const [posts, setPosts] = useState<VolunteerPost[]>(mockVolunteerPosts);
-  const [campaigns, setCampaigns] = useState<Campaign[]>(mockCampaigns);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [groupChats, setGroupChats] = useState<GroupChat[]>(mockVolunteerGroupChats);
     const [isCampaignDialogOpen, setIsCampaignDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
@@ -88,23 +88,51 @@ export default function VolunteerDashboardPage() {
     setIsCampaignDialogOpen(true);
   };
 
-  const handleSaveCampaign = (campaignData: Campaign) => {
+  // Campaigns
+  useEffect(()=>{
+    if(!token) return;
+
+    const getCampaigns = async() =>{
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign/volunteer`,{
+        headers:{
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if(response.data.success){
+        setCampaigns(response.data.campaigns);
+      }
+    }
+    getCampaigns();
+  },[token]);
+
+  const handleSaveCampaign = async(campaignData: Campaign) => {
     if (editingCampaign) {
       // Update existing campaign
-      const updatedCampaign: Campaign = {
-        ...campaignData,
-        createdAt: editingCampaign.createdAt || new Date().toISOString()
-      };
-      setCampaigns(prev => prev.map(c => c.id === editingCampaign.id ? updatedCampaign : c));
-      toast({ title: "Campaign Updated", description: `Campaign "${campaignData.name}" has been updated.` });
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, campaignData, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if(response.data.success){
+        const { campaign } = response.data;
+        setCampaigns(prev => prev.map(c => c.id === editingCampaign.id ? campaign : c));
+        toast({ title: "Campaign Updated", description: `Campaign "${campaignData.name}" has been updated.` });
+      }
     } else {
-      // Create new campaign
-      const newVolunteerCampaign: Campaign = {
-        ...campaignData,
-        createdAt: new Date().toISOString()
-      };
-      setCampaigns(prev => [newVolunteerCampaign, ...prev]);
-      toast({ title: "Campaign Created!", description: `Your new campaign "${campaignData.name}" is now live.` });
+       
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, campaignData, {
+        headers:{
+          "Authorization": `Bearer ${token}`,
+        }
+      });
+
+      if(response.data.success){
+           const { campaign } = response.data;
+        setCampaigns(prev => [campaign, ...prev]);
+        toast({ title: "Campaign Created!", description: `Your new campaign "${campaignData.name}" is now live.` });
+      }
     }
     setIsCampaignDialogOpen(false);
     setEditingCampaign(null);

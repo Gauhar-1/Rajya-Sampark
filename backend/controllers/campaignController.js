@@ -28,7 +28,7 @@ export const addCampaign = async(req, res)=>{
 
 }
 
-export const getCampaigns = async()=>{
+export const getCampaigns = async(req, res)=>{
    const { phone } = req.user;
    
    const volunteer = await Volunteer.findOne({phone});
@@ -40,5 +40,28 @@ export const getCampaigns = async()=>{
    const campaigns = await Campaign.find({ vid : volunteer._id });
 
    res.status(200).json({ success: true, campaigns });
+
+}
+
+export const updateCampaign = async(req, res)=>{
+   const { phone } = req.user;
+   const { name, party, imageUrl, description, location, category } = req.body;
+
+   const volunteer = await Volunteer.findOne({phone});
+
+   if(!volunteer){
+      res.status(404).json({ message: "Volunteer not found"});
+   }
+
+   const campaign = await Campaign.findOneAndUpdate({ vid: volunteer._id },{
+      name,
+      party,
+      imageUrl,
+      description,
+      location,
+      category
+   }, { new: true});
+
+   res.status(200).json({ campaign, success: true });
 
 }

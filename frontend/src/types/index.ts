@@ -107,7 +107,6 @@ export interface ElectionEvent {
 }
 
 export interface Campaign {
-  dataAiHint?: string;
   id: string;
   name: string;
   party?: string;

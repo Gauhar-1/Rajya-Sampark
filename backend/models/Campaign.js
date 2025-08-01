@@ -2,6 +2,7 @@ import { Schema, model } from 'mongoose';
 
 const campaignSchema = new Schema({
   id: String,
+  vid: String,
   name: String,
   party: String,
   imageUrl: String,
