@@ -7,6 +7,7 @@ import volunteerRoutes from './routes/volunteerRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import candidateRoutes from './routes/candidateRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
+import timelineRoutes from './routes/timelineRoutes.js';
 import dotenv from 'dotenv';
 import cors from "cors"
 
@@ -45,6 +46,6 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/volunteer', volunteerRoutes);
 app.use('/api/task', taskRoutes);
 app.use('/api/campaign', campaignRoutes);
-// app.use('/api/cart', cartRoutes);
+app.use('/api/timeline', timelineRoutes);
 
 export default app;

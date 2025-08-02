@@ -94,7 +94,7 @@ export default function AdminPage() {
   const [contentStatusFilter, setContentStatusFilter] = useState<ReportedContentStatus | 'all'>('all');
 
   // Election Data State
-  const [electionEvents, setElectionEvents] = useState<ElectionEvent[]>(initialMockElectionEvents);
+  const [electionEvents, setElectionEvents] = useState<ElectionEvent[]>([]);
   const [eventSearchTerm, setEventSearchTerm] = useState('');
   const [eventTypeFilter, setEventTypeFilter] = useState<ElectionEventType | 'all'>('all');
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
@@ -338,7 +338,7 @@ export default function AdminPage() {
   // Event actions
   const openEventDialog = (event: Partial<ElectionEvent> | null = null) => {
     setCurrentEvent(event || { title: '', date: new Date().toISOString().split('T')[0], type: 'Key Event', description: '' });
-    setEditingEventId(event?.id || null);
+    setEditingEventId(event?._id || null);
     setIsEventDialogOpen(true);
   };
 
@@ -357,31 +357,68 @@ export default function AdminPage() {
     }
   };
 
+  // Get event
+  useEffect(()=>{
+    if(!token) return;
+    const getAllEvent = async()=>{
+       const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline`,{
+        headers:{
+          "Authorization": `Bearer ${token}`,
+        }
+       });
 
-  const handleSaveEvent = () => {
-    if (!currentEvent || !currentEvent.title || !currentEvent.date || !currentEvent.type || !currentEvent.description) {
+       if(response.data.success){
+        setElectionEvents(response.data.timelines);
+       }
+    };
+    getAllEvent();
+  }, [token]);
+
+
+  const handleSaveEvent = async() => {
+    if (!currentEvent || !currentEvent.title || !currentEvent.date  || !currentEvent.type || !currentEvent.description) {
       toast({ title: "Error", description: "All event fields are required.", variant: "destructive" });
       return;
     }
     if (editingEventId) {
-      setElectionEvents(prev => prev.map(e => e.id === editingEventId ? { ...e, ...currentEvent } as ElectionEvent : e));
-      toast({ title: "Event Updated", description: `Event "${currentEvent.title}" has been updated.` });
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline/${editingEventId}`, currentEvent,{
+        headers:{
+          "Authorization": `Bearer ${token}`,
+        }
+      });
+
+      if(response.data.success){
+        setElectionEvents(prev => prev.map(e => e._id === editingEventId ? { ...e, ...currentEvent } as ElectionEvent : e));
+        toast({ title: "Event Updated", description: `Event "${currentEvent.title}" has been updated.` });
+      }
     } else {
-      const newEvent: ElectionEvent = {
-        id: `event-${Date.now()}`,
-        ...currentEvent as Omit<ElectionEvent, 'id'>
-      };
-      setElectionEvents(prev => [newEvent, ...prev]);
-      toast({ title: "Event Added", description: `Event "${newEvent.title}" has been added.` });
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline`, currentEvent,{
+        headers:{
+          "Authorization": `Bearer ${token}`,
+        }
+      });
+
+      if(response.data.success){
+        const { timeline } = response.data;
+        setElectionEvents(prev => [timeline, ...prev]);
+        toast({ title: "Event Added", description: `Event "${timeline.title}" has been added.` });
+      }
     }
     setIsEventDialogOpen(false);
     setCurrentEvent(null);
     setEditingEventId(null);
   };
 
-  const handleDeleteEvent = (eventId: string) => {
-    setElectionEvents(prev => prev.filter(e => e.id !== eventId));
-    toast({ title: "Event Deleted", description: `Event ${eventId} has been deleted.` });
+  const handleDeleteEvent = async(eventId: string) => {
+    const response = await axios.delete(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline/${eventId}`,{
+        headers:{
+          "Authorization": `Bearer ${token}`,
+        }
+      });
+      if(response.data.success){
+        setElectionEvents(prev => prev.filter(e => e._id !== eventId));
+        toast({ title: "Event Deleted", description: `Event ${eventId} has been deleted.` });
+      }
   };
 
   // Overview Tab Stats
@@ -617,12 +654,6 @@ export default function AdminPage() {
                             <Label className="text-right">Status</Label>
                             <Badge variant={getUserStatusBadgeVariant(selectedUser.status)} className="w-fit">{selectedUser.status}</Badge>
                         </div>
-                        {selectedUser.role === 'CANDIDATE' && (
-                            <div className="grid grid-cols-3 items-center gap-4">
-                                <Label className="text-right">Verified Candidate</Label>
-                                <span className="col-span-2">{selectedUser.verified ? 'Yes' : 'No'}</span>
-                            </div>
-                        )}
                     </div>
                 )}
                  <DialogFooter>
@@ -897,7 +928,7 @@ export default function AdminPage() {
                     </TableHeader>
                     <TableBody>
                       {filteredElectionEvents.map(event => (
-                        <TableRow key={event.id}>
+                        <TableRow key={event._id}>
                           <TableCell className="font-medium">{event.title}</TableCell>
                           <TableCell>{format(parseISO(event.date), "PPP")}</TableCell>
                           <TableCell><Badge variant={getEventTypeBadgeVariant(event.type)}>{event.type}</Badge></TableCell>
@@ -906,7 +937,7 @@ export default function AdminPage() {
                             <Button variant="ghost" size="sm" onClick={() => openEventDialog(event)} className="mr-2">
                               <Edit3 className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteEvent(event.id)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteEvent(event._id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </TableCell>

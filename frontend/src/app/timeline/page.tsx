@@ -1,9 +1,12 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 import { mockElectionEvents } from '@/lib/mockData';
 import type { ElectionEvent } from '@/types';
+import axios from 'axios';
 import { CalendarDays, Info, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 function ElectionEventCard({ event }: { event: ElectionEvent }) {
   const Icon = event.type === 'Deadline' ? AlertCircle : event.type === 'Key Event' ? Info : CalendarDays;
@@ -19,7 +22,7 @@ function ElectionEventCard({ event }: { event: ElectionEvent }) {
           </CardTitle>
           <span className={`text-sm font-medium ${iconColor}`}>{event.type}</span>
         </div>
-        <CardDescription>{event.date}</CardDescription>
+        <CardDescription>{new Date(event.date).toLocaleDateString()}</CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-sm">{event.description}</p>
@@ -29,8 +32,28 @@ function ElectionEventCard({ event }: { event: ElectionEvent }) {
 }
 
 export default function ElectionTimelinePage() {
+
+  const { token } = useAuth();
+  const [ events , setEvents ] = useState<ElectionEvent[]>([]);
+
   
-  const sortedEvents = [...mockElectionEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+ useEffect(()=>{
+   if(!token) return;
+
+   const getTimelines = async()=>{
+       const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline`,{
+        headers:{
+          "Authorization": `Bearer ${token}`,
+        }
+       });
+
+       if(response.data.success){
+           setEvents(response.data.timelines);
+       }
+   };
+
+    getTimelines();
+ },[ token ])
 
   return (
     <div>
@@ -41,8 +64,8 @@ export default function ElectionTimelinePage() {
       <p className="text-muted-foreground mb-6">
         Upcoming elections, key dates, deadlines, and events in chronological order.
       </p>
-      {sortedEvents.map((event) => (
-        <ElectionEventCard key={event.id} event={event} />
+      {events.map((event) => (
+        <ElectionEventCard key={event._id} event={event} />
       ))}
     </div>
   );

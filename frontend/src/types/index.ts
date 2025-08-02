@@ -99,7 +99,7 @@ export interface OldFeedPost {
 
 export type ElectionEventType = 'Deadline' | 'Key Event' | 'Election Day';
 export interface ElectionEvent {
-  id: string;
+  _id: string;
   title: string;
   date: string; // Keep as string for mock data simplicity, parse when needed
   description: string;
