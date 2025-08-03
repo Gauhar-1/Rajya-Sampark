@@ -1,5 +1,6 @@
 import Volunteer from "../models/Volunteer.js";
 import Candidate from "../models/Candidate.js";
+import Profile from "../models/Profile.js";
 
 export const createVolunteer = async (req, res) => {
   try {
@@ -38,7 +39,7 @@ export const getAllVolunteers = async (req, res) => {
     const { uid } = req.user;
 
     if(!uid){
-        console.log("UserId missing", uid);
+      return  console.log("UserId missing", uid);
     }
 
   try {
@@ -59,7 +60,7 @@ export const getAllVolunteers = async (req, res) => {
 export const updateVolunteerStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body; 
+    const { status } = req.body;
 
 
     const updated = await Volunteer.findByIdAndUpdate(
@@ -72,7 +73,15 @@ export const updateVolunteerStatus = async (req, res) => {
       return res.status(404).json({ message: 'Volunteer not found' });
     }
 
-    res.status(200).json({ success: true ,updated});
+    const profile =  await Profile.findOneAndUpdate({ phone : updated.phone }, {
+      role : "VOLUNTEER"
+    });
+
+    if(!profile){
+     return res.status(500).json({ message : "Phone Number Invalid" });
+    }
+
+     return res.status(200).json({ success: true ,updated});
   } catch (err) {
     res.status(500).json({ error: 'Error updating volunteer status', details: err.message });
   }
