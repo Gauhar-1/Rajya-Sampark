@@ -10,7 +10,7 @@ const volunteerSchema = new Schema({
     message: String,
     submittedAt: { type: Date},
     status:{ type:String,  enum: ["Active", "Pending", "Inactive"], default: "Pending" },
-    candidateId: { type: String, unique: true , required: false },
+    candidateId: { type: String, required: false },
 })
 
 export default model('Volunteer', volunteerSchema);
