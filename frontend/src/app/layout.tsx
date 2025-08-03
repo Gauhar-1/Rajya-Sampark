@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Civic Connect',
-  description: 'Your platform for engaging with local elections and candidates.',
+  title: 'Rajya Sampark',
+  description: 'Engage with your local leaders and elections through Rajya Sampark — a platform to track candidates, promises, events, and civic updates in real time.',
 };
 
 // RootLayout cannot be a client component if metadata is exported like this.

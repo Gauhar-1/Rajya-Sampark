@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { HideIfAuth } from '../auth/RequiredAuth';
 import { useRouter } from 'next/navigation';
+import { APP_NAME } from '@/lib/constants';
 
 export function AppHeader() {
   const { user, logout, isLoading, role } = useAuth(); 
@@ -45,7 +46,7 @@ export function AppHeader() {
         </div>
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-primary">
           <Vote className="h-7 w-7" />
-          <span>CivicConnect</span>
+          <span>{APP_NAME}</span>
         </Link>
       </div>
       
