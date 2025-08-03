@@ -23,7 +23,7 @@ app.use(json());
 // ✅ More secure CORS
 const allowedOrigins = [
   'http://localhost:9002',
-  'https://civic-connect-omega.vercel.app',
+  'https://rajya-sampark.vercel.app',
 ];
 
 app.use(
