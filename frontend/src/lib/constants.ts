@@ -19,7 +19,7 @@ export const NAV_LINKS: NavLink[] = [
   { href: '/admin', label: 'Admin Panel', icon: ShieldCheck },
 ];
 
-export const APP_NAME = 'CivicConnect';
+export const APP_NAME = 'RajyaSampark';
 export const APP_ICON = Vote;
 
 export const INTEREST_AREAS = [
