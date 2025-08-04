@@ -11,23 +11,23 @@ router.post(
   registerCandidate
 );
 
-// ✅ Get all candidates (both Admin & Users can view)
+// ✅ Get all candidates 
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('ADMIN', 'VOTER'),
+  authorizeRoles('ADMIN', 'VOTER','VOLUNTEER','CANDIDATE'),
   getAllCandidates
 );
 
-// ✅ Get specific candidate by ID (both Admin & Users can view)
+// ✅ Get specific candidate by ID 
 router.get(
   '/:id',
   authMiddleware,
-  authorizeRoles('ADMIN', 'VOTER'),
+  authorizeRoles('ADMIN', 'VOTER','VOLUNTEER','CANDIDATE'),
   getCandidateById
 );
 
-// ✅ Update candidate info (only Admin can update)
+// ✅ Update candidate info 
 router.put(
   '/:id',
   authMiddleware,
@@ -35,7 +35,7 @@ router.put(
   updateCandidate
 );
 
-// ✅ Delete a candidate (only Admin can delete)
+// ✅ Delete a candidate 
 router.delete(
   '/:id',
   authMiddleware,

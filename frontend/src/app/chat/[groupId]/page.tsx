@@ -1,29 +1,27 @@
 
 'use client';
 
-import { useParams, useSearchParams } from 'next/navigation';
+import { useRouter ,useParams, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Send } from 'lucide-react';
-import Link from 'next/link';
 
 export default function ChatPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const groupId = typeof params.groupId === 'string' ? params.groupId : 'Unknown Group';
   const groupName = searchParams.get('name') || groupId;
+  const router = useRouter();
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]"> {/* Adjust height based on your layout */}
       <Card className="flex-grow flex flex-col shadow-lg rounded-lg overflow-hidden">
         <CardHeader className="bg-secondary/30 p-4 border-b">
           <div className="flex items-center gap-3">
-            <Link href="/candidate-dashboard">
-              <Button variant="ghost" size="icon" aria-label="Back to dashboard">
+              <Button variant="ghost" size="icon" aria-label="Back to dashboard" onClick={()=> router.back()}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-            </Link>
             <CardTitle className="text-xl">{groupName}</CardTitle>
           </div>
           <CardDescription>This is a placeholder chat interface. Messaging is not functional.</CardDescription>

@@ -31,23 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
 
-  // Simulate checking for an existing session on component mount
-  // useEffect(() => {
-  //   setIsLoading(true);
-  //   try {
-  //     const storedUser = localStorage.getItem('civic-connect-user');
-  //     if (storedUser) {
-  //       const user: User = JSON.parse(storedUser);
-  //       setAppUser(user);
-  //       setRole(user.role);
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to parse user from localStorage", error);
-  //     localStorage.removeItem('civic-connect-user');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, []);
 
    const updateUser = useCallback(async (data: Partial<User>) => {
     if (!appUser) {

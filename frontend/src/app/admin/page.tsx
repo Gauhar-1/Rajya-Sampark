@@ -3,14 +3,14 @@
 
 import { useState, useMemo, useEffect, type ChangeEvent } from 'react';
 import {
-  ShieldCheck, Users, MessageSquareWarning, GanttChartSquare, BarChart3, FileText, CalendarDays,
-  Filter, Search as SearchIcon, Trash2, Edit3, PlusCircle, Eye, ThumbsUp, ThumbsDown, AlertTriangle, CheckCircle, XCircle, LayoutDashboard, UserPlus
+  ShieldCheck, Users, MessageSquareWarning, GanttChartSquare,  CalendarDays,
+  Search as SearchIcon, Trash2, Edit3, PlusCircle, Eye,  AlertTriangle, CheckCircle, XCircle, LayoutDashboard, UserPlus
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RequiredAuth } from '@/components/auth/RequiredAuth';
-import { mockAdminUsers as initialMockAdminUsers, mockReportedContent as initialMockReportedContent, mockElectionEvents as initialMockElectionEvents,  } from '@/lib/mockData';
-import type { AdminUser, ReportedContentItem, ElectionEvent, Role, UserStatus, ReportedContentStatus, ElectionEventType, Candidate, User } from '@/types';
+import {  mockReportedContent as initialMockReportedContent,  } from '@/lib/mockData';
+import type { ReportedContentItem, ElectionEvent, Role, UserStatus, ReportedContentStatus, ElectionEventType, Candidate, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
