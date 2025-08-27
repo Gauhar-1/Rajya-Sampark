@@ -15,17 +15,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AppHeader />
         <div className="flex flex-1 pt-16">
           <LeftSidebarNav />
-          <SidebarInset className="flex-1 overflow-y-auto">
-            <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col lg:flex-row gap-6">
-                <main className="flex-1 min-w-0"> 
+          <SidebarInset className="flex flex-1 p-2">
+              <div className="flex flex-col lg:flex-row gap-1">
+                <main className="flex-1  py-6 px-4 sm:px-6 lg:px-8"> 
+                  <div className='container mx-auto'>
                   {children}
+                  </div>
                 </main>
-                <aside className="w-full lg:w-80 xl:w-96 flex-shrink-0">
+                <aside className="w-80 xl:w-96 flex-shrink-0  hidden lg:block">
                   <RightSidebarContent />
                 </aside>
               </div>
-            </div>
           </SidebarInset>
         </div>
       </div>

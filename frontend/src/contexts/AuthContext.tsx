@@ -17,6 +17,8 @@ interface AuthContextType {
   loginWithOtp: (phone: string, otp: string) =>void; // Updated for simulated login
   logout: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
+  panel: boolean;
+  setPanel: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [appUser, setAppUser] = useState<User | null>(null);
   const [role, setRole] = useState<Role>('ANONYMOUS');
    const [isLoading, setIsLoading] = useState(false); // Start as true until we check session
+   const [panel, setPanel] = useState(false); 
    const [userId, setUserId] = useState<string | null>(null);
    const [ token, setToken ] = useState<string | null>(null);
    const { toast } = useToast();
@@ -146,7 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginWithOtp,
       logout,
       updateUser,
-      token
+      token, 
+      panel,
+      setPanel
        }}>
       {children}
     </AuthContext.Provider>

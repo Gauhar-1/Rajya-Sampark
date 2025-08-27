@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Search, HandHeart, Vote as VoteIcon, Loader2 } from 'lucide-react'; 
 import { mockCandidates } from '@/lib/mockData'; 
 import type { Candidate } from '@/types';
+import { HideIfAuth, HideRightSideBar } from '../auth/RequiredAuth';
 
 interface SidebarPollOption {
   id: string;
@@ -32,7 +33,7 @@ export function RightSidebarContent() {
     // Simulate fetching or preparing poll data
     // In a real app, candidates might be fetched or come from context
     const pollOptions: SidebarPollOption[] = mockCandidates.map(candidate => ({
-      id: candidate.id,
+      id: candidate._id,
       text: candidate.name,
       votes: Math.floor(Math.random() * 50), // Start with some mock votes for demo
     }));
@@ -69,6 +70,8 @@ export function RightSidebarContent() {
   };
 
   return (
+    <HideRightSideBar>
+      
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -164,5 +167,6 @@ export function RightSidebarContent() {
         </CardContent>
       </Card>
     </div>
+    </HideRightSideBar>
   );
 }

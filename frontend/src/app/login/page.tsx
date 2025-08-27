@@ -78,9 +78,8 @@ export default function LoginPage() {
 
 
   return (
-    <HideIfAuth>
-      <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center">
-        <Card className="w-full max-w-sm shadow-xl">
+      <div className="flex min-h-[calc(100vh-10rem)] px-6 rounded-lg  min-w-full items-center bg-primary shadow-2xl  justify-center">
+        <Card className="w-full min-w-lg shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl flex items-center justify-center">
               <KeyRound className="mr-2 h-6 w-6" />
@@ -127,6 +126,5 @@ export default function LoginPage() {
           </CardContent>
         </Card>
       </div>
-    </HideIfAuth>
   );
 }

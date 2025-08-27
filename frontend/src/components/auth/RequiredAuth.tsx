@@ -14,30 +14,26 @@ interface RequiredAuthProps {
 }
 
 export function RequiredAuth({ children, allowedRoles, redirectTo = '/login' }: RequiredAuthProps) {
-  const { user, role, isLoading } = useAuth();
+  const { user, role, setPanel, isLoading } = useAuth();
   const router = useRouter();
 
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
-  // if (!user) {
-  //   setTimeout(() => router.push(redirectTo), 0);
-  //   return <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]"><p>Redirecting...</p><Loader2 className="ml-2 h-5 w-5 animate-spin text-primary" /></div>;
-  // }
   
-  // if (!allowedRoles.includes(role)) {
-  //   // If user is logged in but doesn't have the right role, send them home
-  //   setTimeout(() => router.push('/'), 0);
-  //   return <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]"><p>Redirecting (Access Denied)...</p><Loader2 className="ml-2 h-5 w-5 animate-spin text-primary" /></div>;
-  // }
+
+  if(!allowedRoles.includes(role)){
+    // router.push('/');
+     return <>UnAuthorized........</>
+  }
 
 
   return <>{children}</>;
 }
 
 export function HideIfAuth({ children }: { children: ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, role, panel } = useAuth();
 
   if (isLoading) {
     return null; 
@@ -47,6 +43,29 @@ export function HideIfAuth({ children }: { children: ReactNode }) {
   if (user) {
     return null;
   }
+
+  if(panel){
+    return null;
+  }
+
+  return <>{children}</>;
+}
+export function HideRightSideBar({ children }: { children: ReactNode }) {
+  const { user, isLoading, role, panel } = useAuth();
+
+  if (isLoading) {
+    return null; 
+  }
+
+  // If login is disabled, user is null, so this will show children.
+  if (!user) {
+    return null;
+  }
+
+  if(panel){
+    return null;
+  }
+
   return <>{children}</>;
 }
 

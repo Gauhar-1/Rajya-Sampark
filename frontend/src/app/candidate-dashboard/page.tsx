@@ -21,6 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import axios from 'axios';
+import { LineChart , BarChart, StackedBarChat, BubbleChart} from '@/hooks/use-charts';
+import MyTree from '@/components/ui/treemap';
 
 // Use INTEREST_AREAS for labels
 function getInterestLabel(interestKey: string): string {
@@ -203,20 +205,13 @@ export default function CandidateDashboardPage() {
   };
 
   return (
-    <RequiredAuth allowedRoles={['CANDIDATE']} redirectTo='/'>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h1 className="text-2xl font-bold flex items-center">
-            <LayoutDashboard className="mr-3 h-7 w-7 text-primary" />
-            Candidate Dashboard
-            </h1>
-        </div>
-        <p className="text-muted-foreground">
-          Monitor volunteers, manage communications, and organize your campaign efforts.
-        </p>
-
-        <Tabs defaultValue="requests" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+    <RequiredAuth allowedRoles={['CANDIDATE', 'ADMIN']} redirectTo='/'>
+      <div className="p-2 bg-primary rounded-lg">
+        <Tabs defaultValue="dashboard" className="w-full ">
+            <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="dashboard" className=''>
+                   Dashboard
+                </TabsTrigger>
                 <TabsTrigger value="requests">
                     <UserPlus className="mr-2 h-4 w-4" />
                     Volunteer Requests ({pendingRequests.length})
@@ -234,20 +229,111 @@ export default function CandidateDashboardPage() {
                     Group Chats
                 </TabsTrigger>
             </TabsList>
+
+            <TabsContent value='dashboard' className='mt-4'>
+                <Card className='shadow-md'>
+                    <CardHeader>
+                        <CardTitle className='flex items-center text-primary'>
+                             <LayoutDashboard className="mr-3 h-7 w-7 " />
+                            Candidate Dashboard
+                        </CardTitle>
+                        <CardDescription>
+                            Monitor, Manage And Organize your Efforts!
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className=' grid grid-cols-5 gap-2 p-2 rounded-md'>
+                            <Card className='text-white border-4 border-black bg-foreground flex flex-col items-center'>
+                                <CardTitle className='text-lg py-2'>
+                                    Total Votes
+                                </CardTitle>
+                                <CardContent className=''>
+                                    <div className='text-xl font-bold'>0</div>
+                                </CardContent>
+                            </Card>
+                            <Card className='text-white border-4 border-black bg-foreground flex flex-col items-center'>
+                                <CardTitle className='text-lg p-2'>
+                                    Target
+                                </CardTitle>
+                                <CardContent className=''>
+                                    <div className='text-xl font-bold'>0</div>
+                                </CardContent>
+                            </Card>
+                            <Card className='text-white border-4 border-black bg-foreground flex flex-col items-center'>
+                                <CardTitle className='text-lg p-2'>
+                                    Achieved
+                                </CardTitle>
+                                <CardContent className=''>
+                                    <div className='text-xl font-bold'>0</div>
+                                </CardContent>
+                            </Card>
+                            <Card className='text-white border-4 border-black bg-foreground flex flex-col items-center'>
+                                <CardTitle className='text-lg p-2'>
+                                    Active Leaders
+                                </CardTitle>
+                                <CardContent className=''>
+                                    <div className='text-xl font-bold'>0</div>
+                                </CardContent>
+                            </Card>
+                            <Card className='text-white border-4 border-black bg-foreground  flex flex-col items-center'>
+                                <CardTitle className='text-lg p-2'>
+                                    Open Critical Issues
+                                </CardTitle>
+                                <CardContent className=''>
+                                    <div className='text-xl font-bold'>0</div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <div className=' bg-primary p-1 rounded-md grid grid-cols-8 gap-1 border-4 border-black'>
+                           <Card className='grid col-start-0 col-span-4 p-1 border-4 border-black flex-col gap-3'>
+                            <CardTitle>Progress Time Series</CardTitle>
+                            <CardContent>
+                               <LineChart />
+                            </CardContent>
+                           </Card>
+
+                           <Card className='grid col-start-5 col-span-8 p-2 border-4 border-black flex-col gap-3'>
+                            <CardTitle>LeaderBoard</CardTitle>
+                            <CardContent>
+                                <BarChart />
+                            </CardContent>
+                           </Card>
+                           <Card className='grid col-start-1 col-span-4  border-4 border-black flex-col gap-3'>
+                            <CardTitle className='m-2'>Critical Issues feed</CardTitle>
+                            <CardContent>
+                                <StackedBarChat />
+                            </CardContent>
+                           </Card>
+                           <Card className='grid col-start-5 col-span-8  border-4 border-black flex-col gap-3'>
+                            <CardTitle className='m-2'>Resource allocation vs Impact</CardTitle>
+                            <CardContent>
+                                <BubbleChart />
+                            </CardContent>
+                           </Card>
+                           <Card className='bg-white border-4 col-span-8 border-black h-full rounded-lg p-2 flex flex-col gap-2'>
+                                <CardTitle>TreeMap</CardTitle>
+                                <CardContent>
+                                    <MyTree></MyTree>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>
             
             <TabsContent value="requests" className="mt-4">
                 <Card className="shadow-md">
                     <CardHeader>
-                        <CardTitle className="flex items-center">
+                        <CardTitle className="flex items-center text-primary">
                             <UserPlus className="mr-2 h-5 w-5 text-primary" />
                             Volunteer Requests for Your Campaign
                         </CardTitle>
                         <CardDescription>Review and approve volunteers who have signed up to help you directly.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='bg-primary border-4 border-black m-2 rounded-lg p-3'>
                         <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
+                            <Table className='bg-white'>
+                                <TableHeader className='border-4 border-black'>
                                     <TableRow>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Email</TableHead>
@@ -284,7 +370,7 @@ export default function CandidateDashboardPage() {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                            <TableCell colSpan={5} className="text-center text-black ">
                                                 No new volunteer requests at this time.
                                             </TableCell>
                                         </TableRow>
@@ -298,17 +384,17 @@ export default function CandidateDashboardPage() {
 
             <TabsContent value="roster" className="mt-4">
                 <Card className="shadow-md">
-                <CardHeader>
+                <CardHeader className='text-primary'>
                     <CardTitle className="flex items-center">
                     <Users className="mr-2 h-5 w-5" />
                     Active Volunteer Roster
                     </CardTitle>
                     <CardDescription>View and filter your active volunteers. Select them to add to group chats.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-card">
-                    <div className="relative">
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <CardContent className='bg-primary border-4 border-black m-2 p-2 rounded-lg'>
+                    <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border-2 border-black  rounded-lg bg-primary">
+                    <div className="relative border-4 border-black rounded-lg">
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground " />
                         <Input
                         type="search"
                         placeholder="Search by name or email..."
@@ -318,6 +404,7 @@ export default function CandidateDashboardPage() {
                         aria-label="Search volunteers"
                         />
                     </div>
+                    <div className='rounded-lg border-4 border-black'>
                     <Select value={interestFilter} onValueChange={setInterestFilter}>
                         <SelectTrigger aria-label="Filter by interest">
                         <SelectValue placeholder="Filter by Interest" />
@@ -331,10 +418,11 @@ export default function CandidateDashboardPage() {
                         </SelectContent>
                     </Select>
                     </div>
+                    </div>
 
                     <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
+                    <Table className='border-4 bg-white border-black m-1'>
+                        <TableHeader className=''>
                         <TableRow>
                             <TableHead>Name</TableHead>
                             <TableHead className="hidden md:table-cell">Phone</TableHead>
@@ -370,7 +458,7 @@ export default function CandidateDashboardPage() {
                             ))
                         ) : (
                             <TableRow>
-                            <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            <TableCell colSpan={6} className="text-center text-black">
                                 No active volunteers found matching your criteria.
                             </TableCell>
                             </TableRow>
@@ -379,7 +467,7 @@ export default function CandidateDashboardPage() {
                     </Table>
                     </div>
                     {activeVolunteers.length > 0 && (
-                        <p className="text-sm text-muted-foreground mt-4">
+                        <p className="text-sm text-gray-300 mt-4">
                             Displaying {activeVolunteers.length} of {volunteers.filter(v=>v.status === 'Active').length} total active volunteers.
                         </p>
                     )}
@@ -390,31 +478,31 @@ export default function CandidateDashboardPage() {
              <TabsContent value="tasks" className="mt-4">
                 <Card className="shadow-md">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
+                        <div className='text-primary'>
                             <CardTitle>Task Management</CardTitle>
                             <CardDescription>Assign and track tasks for your volunteers.</CardDescription>
                         </div>
                         <Dialog open={isAssignTaskOpen} onOpenChange={setIsAssignTaskOpen}>
                             <DialogTrigger asChild>
-                                <Button>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Assign New Task
+                                <Button className='bg-primary'>
+                                    <PlusCircle className="mr-2 h-4 w-4 " /> Assign New Task
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent >
                                 <DialogHeader>
-                                    <DialogTitle>Assign a New Task</DialogTitle>
+                                    <DialogTitle className='text-primary'>Assign a New Task</DialogTitle>
                                     <DialogDescription>Fill out the details below to assign a task to an active volunteer.</DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
-                                    <div>
-                                        <Label htmlFor="task-title">Task Title</Label>
-                                        <Textarea id="task-title" value={newTask.title} onChange={(e) => setNewTask(prev => ({...prev, title: e.target.value}))} placeholder="e.g., Make 50 get-out-the-vote calls" />
+                                    <div className='space-y-1'>
+                                        <Label htmlFor="task-title" className='text-primary font-bold'>Task Title</Label>
+                                        <Textarea id="task-title" value={newTask.title} onChange={(e) => setNewTask(prev => ({...prev, title: e.target.value}))} placeholder="e.g., Make 50 get-out-the-vote calls" className='border-2 border-primary' />
                                     </div>
-                                    <div>
-                                        <Label htmlFor="task-volunteer">Assign To</Label>
-                                        <Select value={newTask.volunteerId} onValueChange={(value) => setNewTask(prev => ({...prev, volunteerId: value}))}>
+                                    <div className='flex flex-col gap-2'>
+                                        <Label htmlFor="task-volunteer" className='text-primary font-bold'>Assign To</Label>
+                                        <Select value={newTask.volunteerId} onValueChange={(value) => setNewTask(prev => ({...prev, volunteerId: value}))} >
                                             <SelectTrigger id="task-volunteer">
-                                                <SelectValue placeholder="Select a volunteer" />
+                                                <SelectValue placeholder="Select a volunteer" className='' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {activeVolunteers.map(v => (
@@ -425,26 +513,26 @@ export default function CandidateDashboardPage() {
                                     </div>
                                 </div>
                                 <DialogFooter>
-                                    <Button variant="outline" onClick={() => setIsAssignTaskOpen(false)}>Cancel</Button>
-                                    <Button onClick={handleAssignTask}>Assign Task</Button>
+                                    <Button variant="outline" onClick={() => setIsAssignTaskOpen(false)}className='border-2 border-primary text-primary'>Cancel</Button>
+                                    <Button onClick={handleAssignTask}className='bg-primary'>Assign Task</Button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
                     </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
+                    <CardContent className='bg-primary m-2 rounded-lg border-4 border-black p-3'>
+                        <Table className='bg-white'>
+                            <TableHeader className=''>
+                                <TableRow className='border-4 border-black'>
                                     <TableHead>Task</TableHead>
                                     <TableHead>Assigned To</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Assigned On</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody className=''>
                                 {assignedTasks.length > 0 ? (
                                     assignedTasks.map(task => (
-                                        <TableRow key={task._id}>
+                                        <TableRow className='border-2  border-gray-300 ' key={task._id}>
                                             <TableCell className="font-medium">{task.title}</TableCell>
                                             <TableCell>{task.volunteerName}</TableCell>
                                             <TableCell>
@@ -455,7 +543,7 @@ export default function CandidateDashboardPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                        <TableCell colSpan={4} className="text-center text-white">
                                             No tasks assigned yet.
                                         </TableCell>
                                     </TableRow>
@@ -470,12 +558,12 @@ export default function CandidateDashboardPage() {
                  <Card className="shadow-md">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
-                            <CardTitle>Group Chats</CardTitle>
+                            <CardTitle className='text-primary'>Group Chats</CardTitle>
                             <CardDescription>Manage your volunteer communication channels.</CardDescription>
                         </div>
                          <Dialog open={isCreateGroupChatOpen} onOpenChange={setIsCreateGroupChatOpen}>
                             <DialogTrigger asChild>
-                                <Button>
+                                <Button className='bg-primary'>
                                 <MessageSquarePlus className="mr-2 h-4 w-4" /> Create Group Chat
                                 </Button>
                             </DialogTrigger>

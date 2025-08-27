@@ -140,8 +140,8 @@ export default function VolunteerDashboardPage() {
 
 
   return (
-    <RequiredAuth allowedRoles={['VOLUNTEER']} redirectTo='/'>
-      <div className="space-y-6">
+    <RequiredAuth allowedRoles={['VOLUNTEER', 'ADMIN']} redirectTo='/'>
+      <div className="space-y-6 max-w-screen">
         <h1 className="text-2xl font-bold flex items-center">
           <ListTodo className="mr-3 h-7 w-7 text-primary" />
           Volunteer Dashboard
@@ -169,11 +169,11 @@ export default function VolunteerDashboardPage() {
           <TabsContent value="tasks" className="mt-4">
             <Card className="shadow-md">
               <CardHeader>
-                <CardTitle>Assigned Tasks</CardTitle>
+                <CardTitle className='text-primary'>Assigned Tasks</CardTitle>
                 <CardDescription>Tasks assigned to you by candidates you support.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Table>
+              <CardContent className='bg-primary m-2 rounded-lg border-4 border-black p-2'>
+                <Table className='bg-white'>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Task</TableHead>
@@ -221,11 +221,11 @@ export default function VolunteerDashboardPage() {
           <TabsContent value="posts" className="mt-4">
             <Card className="shadow-md">
               <CardHeader>
-                <CardTitle>Your Posts</CardTitle>
+                <CardTitle className='text-primary'>Your Posts</CardTitle>
                 <CardDescription>Posts you have created on the main feed.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Table>
+              <CardContent className='bg-primary m-2 p-2 rounded-lg border-4 border-black'> 
+                <Table className='bg-white'>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Content Snippet</TableHead>
@@ -262,15 +262,15 @@ export default function VolunteerDashboardPage() {
             <Card className="shadow-md">
                <CardHeader className="flex flex-row items-center justify-between">
                  <div>
-                    <CardTitle>Your Campaigns</CardTitle>
+                    <CardTitle className='text-primary'>Your Campaigns</CardTitle>
                     <CardDescription>Campaigns you have initiated and are managing.</CardDescription>
                  </div>
-                <Button onClick={() => openCampaignDialog(null)}>
+                <Button className='bg-primary hover:bg-violet-900' onClick={() => openCampaignDialog(null)}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Create New Campaign
                  </Button>
               </CardHeader>
-              <CardContent>
-                <Table>
+              <CardContent className='bg-primary m-2 p-2 rounded-lg border-4 border-black'>
+                <Table className='bg-white'>
                    <TableHeader>
                     <TableRow>
                       <TableHead>Campaign Name</TableHead>
@@ -323,16 +323,16 @@ export default function VolunteerDashboardPage() {
           <TabsContent value="chats" className="mt-4">
              <Card className="shadow-md">
                 <CardHeader>
-                    <CardTitle>My Group Chats</CardTitle>
+                    <CardTitle className='text-primary'>My Group Chats</CardTitle>
                     <CardDescription>Group chats you've been added to by candidates.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className='bg-primary m-2 p-2 rounded-lg border-4 border-black'>
                     {groupChats.length > 0 ? (
                         <ul className="space-y-2">
                             {groupChats.map(chat => (
                                 <li key={chat.id}>
                                     <Link href={`/chat/${chat.id}?name=${encodeURIComponent(chat.name)}`} passHref>
-                                        <div className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer">
+                                        <div className="flex items-center justify-between p-3 border-4 border-black bg-white rounded-md hover:bg-violet-900 hover:text-white transition-colors cursor-pointer ">
                                             <div>
                                                 <p className="font-semibold">{chat.name}</p>
                                                 <p className="text-sm text-muted-foreground">Managed by: {chat.candidateId}</p>

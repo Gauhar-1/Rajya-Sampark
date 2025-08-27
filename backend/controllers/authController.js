@@ -123,37 +123,7 @@ export const verifyOtp  = (async (req, res, next) => {
     }
 });
 
-// export const autoLogin = async (req: any, res: any) => {
 
-//     const token = req.cookies?.token;
-
-//     if (!token) {
-//         console.log("🛑 No token found, returning 401");
-//         return res.status(401).json({ success: false, message: "Not authenticated" });
-//     }
-
-//     if (!process.env.JWT_SECRET) {
-//         console.error("🛑 JWT_SECRET is not defined in environment variables.");
-//         return res.status(500).json({ success: false, message: "Internal server error" });
-//     }
-
-//     try {
-//         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-//         const user = await Profile.findOne({ _id: decoded.userId });
-
-//         if (!user) {
-//             console.log("🛑 User not found, returning 401");
-//             return res.status(401).json({ success: false, message: "User not found" });
-//         }
-
-//         res.json({ success: true, user });
-
-//     } catch (err) {
-//         console.error("🛑 JWT Verification Failed:", err);
-//         return res.status(401).json({ success: false, message: "Invalid or expired token" });
-//     }
-// };
 
 export const logOut = async (req, res) => {
     res.clearCookie("token", {
