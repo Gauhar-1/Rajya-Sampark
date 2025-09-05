@@ -1,5 +1,5 @@
 
-'use client'; // Must be a client component if it uses hooks or client-side forms directly
+'use client'; 
 
 // This page is effectively no longer directly used as poll creation
 // is now handled via a dialog from the HomePage.

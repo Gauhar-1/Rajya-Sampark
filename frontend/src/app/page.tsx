@@ -31,6 +31,8 @@ import { CreatePollForm } from '@/components/forms/CreatePollForm';
 import { CreateVideoForm } from '@/components/forms/CreateVideoForm';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 
 interface FeedItemCardProps {
@@ -212,15 +214,36 @@ export default function HomePage() {
   const [isPollDialogOpen, setIsPollDialogOpen] = useState(false);
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { token } = useAuth();
 
-  const addNewFeedItem = (newItem: FeedItem) => {
-    setFeedItems(prevItems =>
-      [newItem, ...prevItems].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    );
+  const addNewFeedItem = async(newPost: TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem) => {
+    const { content , itemType, mediaUrl} = newPost;
+    
+    try{
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post`, {
+      content,
+      itemType,
+      mediaUrl
+    },{
+      headers:{
+        "Authorization": `Bearer ${token}`
+      }
+    })
+
+    if(response.data.success){
+      const { detailPost } = response.data;
+      setFeedItems(prevItems =>
+        [detailPost, ...prevItems].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      );
+    }}
+    catch(err){
+      console.log("Error found", err);
+    }
+
   };
 
   const handleCreatePost = (newPost: TextPostFeedItem | ImagePostFeedItem) => {
-    addNewFeedItem({ ...newPost, likes: 0, comments: 0, shares: 0 });
+    addNewFeedItem( newPost );
     setIsPostDialogOpen(false);
   };
 
@@ -241,12 +264,12 @@ export default function HomePage() {
       comments: 0,
       shares: 0,
     };
-    addNewFeedItem(pollFeedItem);
+    // addNewFeedItem(pollFeedItem);
     setIsPollDialogOpen(false);
   };
 
   const handleCreateVideo = (newVideo: VideoPostFeedItem) => {
-    addNewFeedItem({ ...newVideo, likes: 0, comments: 0, shares: 0 });
+    addNewFeedItem(newVideo);
     setIsVideoDialogOpen(false);
   };
 

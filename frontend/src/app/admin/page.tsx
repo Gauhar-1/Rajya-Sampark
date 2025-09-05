@@ -32,6 +32,7 @@ import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
 import Image from 'next/image';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCloud } from '@/hooks/use-cloudinary';
 
 // Helper to get badge color for User Status
 function getUserStatusBadgeVariant(status: UserStatus): "default" | "secondary" | "destructive" | "outline" {
@@ -77,6 +78,7 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
    // Candidate Management State
+   const { uploadFile , dataUrl } = useCloud();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [candidateSearchTerm, setCandidateSearchTerm] = useState('');
   const [candidateRegionFilter, setCandidateRegionFilter] = useState('all');
@@ -217,12 +219,13 @@ export default function AdminPage() {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>, fileType: 'image' | 'manifesto') => {
       const file = e.target.files?.[0];
       if (file) {
+          uploadFile(file);
           const reader = new FileReader();
           reader.onloadend = () => {
               if (fileType === 'image') {
-                  setImagePreview(reader.result as string);
+                  setImagePreview(dataUrl);
               } else {
-                  setManifestoPreview(reader.result as string);
+                  setManifestoPreview(dataUrl);
               }
           };
           reader.readAsDataURL(file);
@@ -771,7 +774,7 @@ export default function AdminPage() {
                         <Label htmlFor="manifestoFile" className="text-right">Manifesto Image</Label>
                         <Input id="manifestoFile" name="manifestoFile" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'manifesto')} className="col-span-3" />
                     </div>
-                    {manifestoPreview && <div className="col-start-2 col-span-3"><Image src={manifestoPreview} alt="Manifesto preview" width={150} height={200} className="rounded-md border" /></div>}
+                    {/* {manifestoPreview && <div className="col-start-2 col-span-3"><Image src={manifestoPreview} alt="Manifesto preview" width={150} height={200} className="rounded-md border" /></div>} */}
                     
                     <div className="space-y-2">
                         <Label htmlFor="keyPolicies" className="text-right">Key Policies</Label>

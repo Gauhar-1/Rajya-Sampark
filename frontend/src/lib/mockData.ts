@@ -81,6 +81,50 @@ export const mockFeedPosts = [
     comments: 22,
     shares: 11,
   },
+  {
+  id: 'post4',
+  candidateName: 'Diana Rivers',
+  candidateParty: 'Future Forward',
+  candidateRole: 'Candidate for Coastal District',
+  candidateImageUrl: 'https://placehold.co/40x40.png?text=DR',
+  dataAiHintCandidate: 'woman smiling at crowd',
+  timestamp: new Date(Date.now() - 5400000).toISOString(), // 1.5 hrs ago
+  content: 'Listening to families worried about flooding. We need urgent action 🌊. #ClimateResilience',
+  postImageUrl: 'https://placehold.co/600x400.png?text=Sea+Flooding',
+  dataAiHintPost: 'coastal flooding',
+  likes: 540,
+  comments: 92,
+  shares: 33,
+},
+{
+  id: 'post5',
+  candidateName: 'Ethan Patel',
+  candidateParty: 'Innovation Party',
+  candidateRole: 'Candidate for Tech Valley Mayor',
+  candidateImageUrl: 'https://placehold.co/40x40.png?text=EP',
+  dataAiHintCandidate: 'man in glasses with laptop',
+  timestamp: new Date(Date.now() - 1800000).toISOString(), // 30 min ago
+  content: 'Launching free weekend coding bootcamps for local teens! 💻 #TechForAll',
+  postImageUrl: 'https://placehold.co/600x400.png?text=Code+Camp',
+  dataAiHintPost: 'kids coding class',
+  likes: 310,
+  comments: 48,
+  shares: 21,
+},
+{
+  id: 'post6',
+  candidateName: 'Fatima Khan',
+  candidateParty: 'Community First',
+  candidateRole: 'Candidate for Northside Borough Council',
+  candidateImageUrl: 'https://placehold.co/40x40.png?text=FK',
+  dataAiHintCandidate: 'woman holding microphone',
+  timestamp: new Date(Date.now() - 720000).toISOString(), // 12 min ago
+  content: 'Childcare costs are crushing families. My plan ensures affordable care centers in every neighborhood. ❤️ #FamiliesFirst',
+  likes: 120,
+  comments: 26,
+  shares: 10,
+}
+
 ];
 
 const today = new Date();

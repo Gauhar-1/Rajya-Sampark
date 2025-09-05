@@ -4,24 +4,25 @@ import User from "../models/User.js";
  export const registerCandidate = async (req, res) => {
   try {
     const { name, party, region, keyPolicies, manifestoUrl, imageUrl, profileBio } = req.body;
-    const { uid } = req.user;
+    // const { uid } = req.user;
 
-    if(!uid){
-      console.log("Missing UserId");
+    // if(!uid){
+    //   console.log("Missing UserId");
+    // }
+
+
+    const user = await User.findOne({name });
+    if(!user){
+        return res.status(400).json({ msg: 'User not found' });
     }
-
     // Check if candidate already exists
-    const existingCandidate = await Candidate.findOne({  uid });
+    const existingCandidate = await Candidate.findOne({  uid : user._id });
     if (existingCandidate) {
       return res.status(400).json({ msg: 'Candidate already registered.' });
     }
 
-    const user = await User.findOne({_id : uid });
-    if(!user){
-        return res.status(400).json({ msg: 'User not found' });
-    }
     const newCandidate = new Candidate({
-         uid,
+         uid : user._id,
          name,
          party,
          region,

@@ -38,6 +38,7 @@ interface BaseFeedItem {
 export interface TextPostFeedItem extends BaseFeedItem {
   itemType: 'text_post';
   content: string;
+  mediaUrl: null;
 }
 
 export interface ImagePostFeedItem extends BaseFeedItem {
