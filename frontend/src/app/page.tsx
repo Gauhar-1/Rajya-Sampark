@@ -216,7 +216,15 @@ export default function HomePage() {
   const { toast } = useToast();
   const { token } = useAuth();
 
-  const addNewFeedItem = async(newPost: TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem) => {
+  const addNewFeedItem = async(newPost: TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem | PollFeedItem) => {
+
+    setFeedItems(prevItems =>
+      [newPost, ...prevItems].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    );
+  };
+
+  const handleCreatePost = async(newPost: TextPostFeedItem | ImagePostFeedItem) => {
+
     const { content , itemType, mediaUrl} = newPost;
     
     try{
@@ -232,45 +240,67 @@ export default function HomePage() {
 
     if(response.data.success){
       const { detailPost } = response.data;
-      setFeedItems(prevItems =>
-        [detailPost, ...prevItems].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      );
-    }}
+      addNewFeedItem( detailPost );
+    }
+  }
     catch(err){
       console.log("Error found", err);
+    }
+    finally{
+      setIsPostDialogOpen(false);
     }
 
   };
 
-  const handleCreatePost = (newPost: TextPostFeedItem | ImagePostFeedItem) => {
-    addNewFeedItem( newPost );
-    setIsPostDialogOpen(false);
+  const handleCreatePoll = async(newPollData: Poll) => {
+    try{
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/poll`,{
+          pollQuestion : newPollData.question,
+          pollOptions : newPollData.options.map(opt => ({ ...opt, votes: 0 })),
+        },{
+          headers:{
+            "Authorization": `Bearer ${token}`
+          }
+        })        
+
+        if(response.data.success){
+          const { detailPoll } = response.data;
+          addNewFeedItem(detailPoll);
+        }
+    }
+    catch(err){
+      console.log("Error found in the page", err);
+    }
+    finally{
+      setIsPollDialogOpen(false);
+    }
   };
 
-  const handleCreatePoll = (newPollData: Poll) => {
-     const pollFeedItem: PollFeedItem = {
-      id: `feed-poll-${newPollData.id}`,
-      timestamp: new Date().toISOString(),
-      itemType: 'poll_created',
-      creatorName: 'Current User', // Placeholder
-      creatorImageUrl: 'https://placehold.co/40x40.png?text=CU',
-      creatorDataAiHint: 'person face',
-      pollId: newPollData.id,
-      pollQuestion: newPollData.question,
-      pollOptions: newPollData.options.map(opt => ({ ...opt, votes: 0 })),
-      totalVotes: 0,
-      userHasVoted: false,
-      likes: 0, // Polls don't have likes/comments/shares in this model
-      comments: 0,
-      shares: 0,
-    };
-    // addNewFeedItem(pollFeedItem);
-    setIsPollDialogOpen(false);
-  };
+  const handleCreateVideo = async(newVideo: VideoPostFeedItem) => {
+    const { content , itemType, mediaUrl} = newVideo;
+    
+    try{
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post`, {
+      content,
+      itemType,
+      mediaUrl
+    },{
+      headers:{
+        "Authorization": `Bearer ${token}`
+      }
+    })
 
-  const handleCreateVideo = (newVideo: VideoPostFeedItem) => {
-    addNewFeedItem(newVideo);
-    setIsVideoDialogOpen(false);
+    if(response.data.success){
+      const { detailPost } = response.data;
+      addNewFeedItem( detailPost );
+    }
+  }
+    catch(err){
+      console.log("Error found", err);
+    }
+    finally{
+      setIsVideoDialogOpen(false);
+    }
   };
 
   const handlePollVote = (pollId: string, optionId: string) => {
