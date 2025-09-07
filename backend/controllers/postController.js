@@ -17,13 +17,9 @@ import Post from "../models/Post.js";
         shares: 0,
     })
 
-    const detailPost = { 
-        ...post._doc,
-        creatorName: profile.name,
-        creatorImageUrl: profile.photoURL,
-    }
+    const populatedPost = post.populate('profileId')
 
-    res.status(200).json({ success: true, detailPost })
+    res.status(200).json({ success: true, populatedPost })
 }
 catch(err){
    console.log("Error found by creating Post: ", err);
@@ -52,16 +48,28 @@ catch(err){
         totalVotes: 0,
     })
 
-    const detailPoll = { 
-        ...poll._doc,
-        creatorName: profile.name,
-        creatorImageUrl: profile.photoURL,
-    }
+    const populatedPoll = poll.populate('profileId');
 
-    res.status(200).json({ success: true, detailPoll })
+    res.status(200).json({ success: true, populatedPoll })
 }
 catch(err){
    console.log("Error found by creating Post: ", err);
 }
     
+ }
+
+ export const getFeed = async(req, res)=>{
+
+    try{ 
+        const post = await Post.find().populate('profileId');
+
+        const poll = await Poll.find().populate('profileId');
+
+        const allFeed = [ ...post, ...poll];
+
+        res.status(200).json({ success: true, allFeed });
+    }
+    catch(err){
+        console.log("Error found while getting Feed", err);
+    }
  }

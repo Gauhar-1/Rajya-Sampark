@@ -48,9 +48,9 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
 
   const handleLikeClick = () => {
     if (isLikedByClient) {
-      onLike(item.id, 'unlike');
+      onLike(item._id, 'unlike');
     } else {
-      onLike(item.id, 'like');
+      onLike(item._id, 'like');
     }
     setIsLikedByClient(!isLikedByClient);
   };
@@ -139,14 +139,14 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
     <Card className="mb-6 shadow-lg rounded-lg overflow-hidden">
       <CardHeader className="flex flex-row items-center space-x-3 p-4">
         <Avatar>
-          {item.creatorImageUrl ? (
-            <AvatarImage src={item.creatorImageUrl} alt={item.creatorName} data-ai-hint={item.creatorDataAiHint || "person face"} />
+          {item.profileId.photoURL ? (
+            <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} data-ai-hint={item.creatorDataAiHint || "person face"} />
           ) : null}
-          <AvatarFallback>{item.creatorName.substring(0, 2).toUpperCase()}</AvatarFallback>
+          <AvatarFallback>{item.profileId.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div>
           <CardTitle className="text-base font-semibold flex items-center">
-            {item.creatorName}
+            {item.profileId.name}
           </CardTitle>
           <p className="text-xs text-muted-foreground">
             Posted {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
@@ -180,7 +180,7 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() => onComment(item.id)} aria-label={`Comment on post, current comments ${item.comments}`}>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() => onComment(item._id)} aria-label={`Comment on post, current comments ${item.comments}`}>
                   <MessageCircle className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
@@ -192,7 +192,7 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() => onShare(item.id)} aria-label={`Share post, current shares ${item.shares}`}>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() => onShare(item._id)} aria-label={`Share post, current shares ${item.shares}`}>
                   <Share2 className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
@@ -209,14 +209,32 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
 
 
 export default function HomePage() {
-  const [feedItems, setFeedItems] = useState<FeedItem[]>(mockInitialFeedItems);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [isPollDialogOpen, setIsPollDialogOpen] = useState(false);
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const { toast } = useToast();
   const { token } = useAuth();
 
-  const addNewFeedItem = async(newPost: TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem | PollFeedItem) => {
+  useEffect(()=>{
+    const getFeed = async()=>{
+      try{
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post`);
+          
+          if(response.data.success){
+              const { allFeed } = response.data;
+              const feed = allFeed.sort((a : any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+              setFeedItems(feed);
+          }
+      }
+      catch(err){
+       console.log("Found an Error while fetching err ", err);
+      }
+    }
+    getFeed();
+  },[])
+
+  const addNewFeedItem = (newPost: TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem | PollFeedItem) => {
 
     setFeedItems(prevItems =>
       [newPost, ...prevItems].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -239,8 +257,8 @@ export default function HomePage() {
     })
 
     if(response.data.success){
-      const { detailPost } = response.data;
-      addNewFeedItem( detailPost );
+      const { popluplatedPost } = response.data;
+      addNewFeedItem( popluplatedPost );
     }
   }
     catch(err){
@@ -264,8 +282,8 @@ export default function HomePage() {
         })        
 
         if(response.data.success){
-          const { detailPoll } = response.data;
-          addNewFeedItem(detailPoll);
+          const { populatedPoll } = response.data;
+          addNewFeedItem(populatedPoll);
         }
     }
     catch(err){
@@ -291,8 +309,8 @@ export default function HomePage() {
     })
 
     if(response.data.success){
-      const { detailPost } = response.data;
-      addNewFeedItem( detailPost );
+      const { popluplatedPost } = response.data;
+      addNewFeedItem( popluplatedPost );
     }
   }
     catch(err){
@@ -325,7 +343,7 @@ export default function HomePage() {
   const handleLike = (itemId: string, action: 'like' | 'unlike') => {
     setFeedItems(prevItems =>
       prevItems.map(item => {
-        if (item.id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
+        if (item._id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
           const newLikes = action === 'like' ? item.likes + 1 : Math.max(0, item.likes - 1);
           return { ...item, likes: newLikes };
         }
@@ -337,7 +355,7 @@ export default function HomePage() {
   const handleComment = (itemId: string) => {
     setFeedItems(prevItems =>
       prevItems.map(item => {
-         if (item.id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
+         if (item._id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
           return { ...item, comments: item.comments + 1 };
         }
         return item;
@@ -351,7 +369,7 @@ export default function HomePage() {
   const handleShare = (itemId: string) => {
      setFeedItems(prevItems =>
       prevItems.map(item => {
-        if (item.id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
+        if (item._id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
           return { ...item, shares: item.shares + 1 };
         }
         return item;
@@ -442,7 +460,7 @@ export default function HomePage() {
       )}
       {feedItems.map((item) => (
         <FeedItemCard
-            key={item.id}
+            key={item._id}
             item={item}
             onPollVote={handlePollVote}
             onLike={handleLike}
