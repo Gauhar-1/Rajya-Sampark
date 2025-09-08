@@ -118,7 +118,7 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
                       <Button
                         variant="outline"
                         className="w-full justify-start"
-                        onClick={() => onPollVote?.(item.pollId, option.id)}
+                        onClick={() => onPollVote?.(item._id, option.id)}
                       >
                         {option.text}
                       </Button>
@@ -321,10 +321,13 @@ export default function HomePage() {
     }
   };
 
-  const handlePollVote = (pollId: string, optionId: string) => {
+  const handlePollVote = async(pollId: string, optionId: string) => {
+
+    const originalFeed = [...feedItems];
+
     setFeedItems(prevItems =>
       prevItems.map(item => {
-        if (item.itemType === 'poll_created' && item.pollId === pollId && !item.userHasVoted) {
+        if (item.itemType === 'poll_created' && item._id === pollId && !item.userHasVoted) {
           const newOptions = item.pollOptions.map(opt =>
             opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
           );
@@ -338,6 +341,18 @@ export default function HomePage() {
         return item;
       })
     );
+
+    try{
+       await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/${pollId}/vote`, { optionId }, {
+        headers:{
+          'Authorization': `Bearer ${token}`
+        }
+      })
+    }
+    catch(err){
+      console.error("Error while voting", err);
+      // setFeedItems(originalFeed);
+    }
   };
 
   const handleLike = (itemId: string, action: 'like' | 'unlike') => {
@@ -382,7 +397,7 @@ export default function HomePage() {
 
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="w-[780px] mx-auto">
       <Card className="mb-6 shadow-md rounded-lg p-4">
         <div className="flex items-center justify-around">
           <TooltipProvider>

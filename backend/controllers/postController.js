@@ -17,7 +17,7 @@ import Post from "../models/Post.js";
         shares: 0,
     })
 
-    const populatedPost = post.populate('profileId')
+    const populatedPost = await post.populate('profileId')
 
     res.status(200).json({ success: true, populatedPost })
 }
@@ -48,7 +48,7 @@ catch(err){
         totalVotes: 0,
     })
 
-    const populatedPoll = poll.populate('profileId');
+    const populatedPoll = await poll.populate('profileId');
 
     res.status(200).json({ success: true, populatedPoll })
 }
@@ -71,5 +71,30 @@ catch(err){
     }
     catch(err){
         console.log("Error found while getting Feed", err);
+    }
+ }
+
+ export const votePoll = async(req, res)=>{
+    try{
+        const { id } = req.params;
+        const { optionId }= req.body;
+
+        const poll = await Poll.findById(id);
+
+        if(!poll){
+            res.status(404).json({ message : "No poll found" });
+        }
+
+        const newOptions = poll.pollOptions.map( option => optionId == option.id ? { ...option , votes : option.votes + 1} : option);
+        poll.pollOptions = newOptions;
+        poll.totalVotes +=1;
+        poll.userHasVoted = true;
+        await poll.save();
+
+        res.status(200).json({ success: true, poll })
+    }
+    catch(err){
+        console.log("Error found while voting the poll" , err);
+        res.status(400).json( { error: err.message });
     }
  }
