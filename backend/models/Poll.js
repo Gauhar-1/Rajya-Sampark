@@ -7,7 +7,7 @@ const schema = new Schema({
     pollOptions: { type: []},
     totalVotes: Number,
     itemType: String,
-    userHasVoted: Boolean,
+    userHasVoted: { type: []},
     timestamp: Date,
 })
 

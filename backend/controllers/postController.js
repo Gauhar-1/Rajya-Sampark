@@ -1,3 +1,4 @@
+import { profile } from "console";
 import Poll from "../models/Poll.js";
 import Post from "../models/Post.js";
 
@@ -78,6 +79,7 @@ catch(err){
     try{
         const { id } = req.params;
         const { optionId }= req.body;
+        const profile = req.user;
 
         const poll = await Poll.findById(id);
 
@@ -85,10 +87,16 @@ catch(err){
             res.status(404).json({ message : "No poll found" });
         }
 
+        const isVoted = poll.userHasVoted.find( vote => vote.profileId == profile._id);
+
+        if(isVoted){
+           return  res.status(403).json({ message : "User already voted" });
+        }
+
         const newOptions = poll.pollOptions.map( option => optionId == option.id ? { ...option , votes : option.votes + 1} : option);
         poll.pollOptions = newOptions;
+        poll.userHasVoted.push({ profileId : profile._id , voted : true });
         poll.totalVotes +=1;
-        poll.userHasVoted = true;
         await poll.save();
 
         res.status(200).json({ success: true, poll })

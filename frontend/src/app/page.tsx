@@ -12,7 +12,7 @@ import {
   Edit3, BarChart2, Video as VideoIcon, Search as SearchIcon
 } from 'lucide-react';
 import { initialFeedItems as mockInitialFeedItems } from '@/lib/mockData';
-import type { FeedItem, TextPostFeedItem, ImagePostFeedItem, VideoPostFeedItem, CampaignFeedItem, PollFeedItem, PollOption as FeedPollOption, Campaign, Poll } from '@/types';
+import type { FeedItem, TextPostFeedItem, ImagePostFeedItem, VideoPostFeedItem, CampaignFeedItem, PollFeedItem, PollOption as FeedPollOption, Campaign, Poll, hasVoted } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Tooltip,
@@ -45,6 +45,7 @@ interface FeedItemCardProps {
 
 function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItemCardProps) {
   const [isLikedByClient, setIsLikedByClient] = useState(false);
+  const { user } = useAuth();
 
   const handleLikeClick = () => {
     if (isLikedByClient) {
@@ -104,9 +105,10 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
             <div className="space-y-2">
               {item.pollOptions.map((option) => {
                 const percentage = item.totalVotes > 0 ? (option.votes / item.totalVotes) * 100 : 0;
+                  const isVoted = item.userHasVoted ? item.userHasVoted?.find( vote => vote.profileId == user?._id ) : false;
                 return (
                   <div key={option.id}>
-                    {item.userHasVoted ? (
+                    {isVoted ? (
                       <div className="space-y-1">
                         <div className="flex justify-between text-xs">
                           <span>{option.text}</span>
@@ -136,7 +138,7 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
   };
 
   return (
-    <Card className="mb-6 shadow-lg rounded-lg overflow-hidden">
+    <Card  className="mb-6 shadow-lg rounded-lg overflow-hidden">
       <CardHeader className="flex flex-row items-center space-x-3 p-4">
         <Avatar>
           {item.profileId.photoURL ? (
@@ -214,7 +216,7 @@ export default function HomePage() {
   const [isPollDialogOpen, setIsPollDialogOpen] = useState(false);
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const { toast } = useToast();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   useEffect(()=>{
     const getFeed = async()=>{
@@ -232,7 +234,7 @@ export default function HomePage() {
       }
     }
     getFeed();
-  },[])
+  },[token])
 
   const addNewFeedItem = (newPost: TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem | PollFeedItem) => {
 
@@ -327,15 +329,18 @@ export default function HomePage() {
 
     setFeedItems(prevItems =>
       prevItems.map(item => {
-        if (item.itemType === 'poll_created' && item._id === pollId && !item.userHasVoted) {
+        if (item.itemType === 'poll_created' && item._id === pollId) {
           const newOptions = item.pollOptions.map(opt =>
             opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
           );
+
+          const userHasVoted : hasVoted[] =  [...(item.userHasVoted || []) , { profileId : user?._id || "" , voted: true } ] 
+
           return {
             ...item,
             pollOptions: newOptions,
             totalVotes: item.totalVotes + 1,
-            userHasVoted: true,
+            userHasVoted,
           };
         }
         return item;
@@ -351,7 +356,7 @@ export default function HomePage() {
     }
     catch(err){
       console.error("Error while voting", err);
-      // setFeedItems(originalFeed);
+      setFeedItems(originalFeed);
     }
   };
 

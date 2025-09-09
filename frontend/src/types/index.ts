@@ -2,6 +2,7 @@
 export type Role = 'ADMIN' | 'CANDIDATE' | 'VOLUNTEER' | 'VOTER' | 'ANONYMOUS';
 
 export interface User {
+  _id: string,
   uid: string;
   phone: string | null;
   email?: string | null;
@@ -68,13 +69,18 @@ export interface PollOption {
   votes: number;
 }
 
+export interface hasVoted {
+  profileId : string,
+  voted : boolean
+}
+
 export interface PollFeedItem extends BaseFeedItem {
   itemType: 'poll_created';
   pollId: string; 
   pollQuestion: string;
   pollOptions: PollOption[]; 
   totalVotes: number;
-  userHasVoted?: boolean;
+  userHasVoted: hasVoted[];
 }
 
 export type FeedItem = TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem | CampaignFeedItem | PollFeedItem;
