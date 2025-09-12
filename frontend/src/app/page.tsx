@@ -332,7 +332,7 @@ export default function HomePage() {
         if (item.itemType === 'poll_created' && item._id === pollId) {
           const newOptions = item.pollOptions.map(opt =>
             opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
-          );
+          )
 
           const userHasVoted : hasVoted[] =  [...(item.userHasVoted || []) , { profileId : user?._id || "" , voted: true } ] 
 
