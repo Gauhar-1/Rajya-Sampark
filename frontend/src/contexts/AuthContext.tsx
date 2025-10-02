@@ -39,9 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!appUser) {
       throw new Error("No user is currently logged in.");
     }
-    
-    // In a real app, you would update the user document in Firestore/DB here.
-    // For the simulation, we'll just update the local state and localStorage.
 
     const updatedUser = { ...appUser, ...data };
     

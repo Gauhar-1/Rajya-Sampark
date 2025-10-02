@@ -167,6 +167,13 @@ export interface GroupMember{
    lastReadTimestamp : string,
 }
 
+export interface Message{
+  groupId: string,
+  senderId: User,
+  content: string,
+  createdAt: Date,
+}
+
 
 export interface FirestoreUser { 
   uid: string;

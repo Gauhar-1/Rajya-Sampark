@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Send } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { io, Socket } from 'socket.io-client'
+import { Message } from '@/types';
 
 export default function ChatPage() {
   const params = useParams();
@@ -13,6 +17,51 @@ export default function ChatPage() {
   const groupId = typeof params.groupId === 'string' ? params.groupId : 'Unknown Group';
   const groupName = searchParams.get('name') || groupId;
   const router = useRouter();
+  const { token, user } = useAuth()
+  const socketRef = useRef<Socket | null>(null);
+  const [ messages, setMessages ] = useState<Message[]>([]);
+  const [ content, setContent ] = useState<String | null>(null);
+
+  useEffect(()=>{
+    if(!token) return;
+
+    const socket = io('http://localhost:3000',{
+      auth:{
+        token
+      }
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', ()=>{
+      console.log('Socket connected!', socket.id);
+      socket.emit('joinRoom', groupId);
+    });
+
+    socket.on('newMessage',(newMessage)=>{
+      setMessages((prev) => [...prev, newMessage]);
+    });
+
+    socket.on('allMessage',(messages)=> setMessages(messages));
+
+    socket.on('connect_error', (error)=>{
+      console.log('Connection error:', error);
+    })
+
+    return ()=>{
+      if(socketRef.current){
+        console.log('Disconnecting socket...');
+        socketRef.current.disconnect();
+      }
+    }
+  },[token]);
+
+  const sendMessage = ()=>{
+    socketRef.current?.emit('sendMessage' , {
+      content,
+      groupId
+    });
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]"> {/* Adjust height based on your layout */}
@@ -28,42 +77,34 @@ export default function ChatPage() {
         </CardHeader>
         
         <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
-          {/* Mock messages */}
-          <div className="flex justify-start">
-            <div className="bg-muted p-3 rounded-lg max-w-xs">
-              <p className="text-sm font-medium">Volunteer Alice</p>
-              <p className="text-sm">Hello team! When is the next canvassing event?</p>
-              <p className="text-xs text-muted-foreground text-right">10:00 AM</p>
+         {messages.map(message =>{
+
+         const isSender = user?._id == message.senderId._id;
+         const isAdmin = user?.role == 'CANDIDATE' || 'ADMIN' ? true : false;
+           
+         return (<div className={`flex ${ isSender ? "justify-end" : "justify-start"}`}>
+            <div className={` ${ isSender ? "bg-primary text-primary-foreground" : "bg-muted"} p-3 flex flex-col gap-2 rounded-lg w-1/2`}>
+              <p className="text-sm font-semibold text-shadow-lg">{isAdmin ? "Admin": "Volunteer"} {message.senderId.name}</p>
+              <p className="text-sm">{message.content}</p>
+              <p className="text-xs text-gray-400 text-right">{new Date(message.createdAt).toLocaleTimeString()}</p>
             </div>
           </div>
-          <div className="flex justify-end">
-            <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-xs">
-              <p className="text-sm font-medium">Candidate (You)</p>
-              <p className="text-sm">Hi Alice! It's scheduled for Saturday at 10 AM. More details in the event channel.</p>
-              <p className="text-xs text-primary-foreground/80 text-right">10:02 AM</p>
-            </div>
-          </div>
-          <div className="flex justify-start">
-            <div className="bg-muted p-3 rounded-lg max-w-xs">
-              <p className="text-sm font-medium">Volunteer Bob</p>
-              <p className="text-sm">Great, I'll be there!</p>
-              <p className="text-xs text-muted-foreground text-right">10:03 AM</p>
-            </div>
-          </div>
-           <div className="text-center text-muted-foreground text-xs py-4">
-            --- Chat placeholder: Further messages would appear here ---
-          </div>
+          )
+         })
+     }
         </CardContent>
         
         <div className="border-t p-4 bg-background">
           <div className="flex items-center space-x-2">
             <Textarea
-              placeholder="Type your message here... (disabled)"
+              placeholder="Type your message here..."
               className="flex-grow resize-none"
               rows={1}
-              disabled
+              onChange={(e)=>{
+                 setContent(e.target.value);
+              }}
             />
-            <Button disabled>
+            <Button onClick={sendMessage} >
               <Send className="mr-2 h-4 w-4" /> Send
             </Button>
           </div>
