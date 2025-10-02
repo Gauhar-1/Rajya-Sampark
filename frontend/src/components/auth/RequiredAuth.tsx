@@ -69,6 +69,16 @@ export function HideRightSideBar({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+export function HideLeftSideBar({ children }: { children: ReactNode }) {
+  const { panel } = useAuth();
+
+  // if(panel){
+  //   return null;
+  // }
+
+  return <>{children}</>;
+}
+
 export function ShowIfAuth({ children, roles }: { children: ReactNode, roles?: Role[] }) {
   const { user, role, isLoading } = useAuth();
 

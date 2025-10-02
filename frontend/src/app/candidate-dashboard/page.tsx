@@ -103,9 +103,7 @@ export default function CandidateDashboardPage() {
     });
   }, [volunteers, searchTerm, interestFilter]);
 
-  // Volunteers for the request queue (Pending Review for this candidate)
   const pendingRequests = useMemo(() => {
-    // In a real app, user.name would come from the signed-in candidate's profile
 
     return volunteers.filter(v => 
         v.status === 'Pending'  && 
@@ -113,18 +111,57 @@ export default function CandidateDashboardPage() {
     );
   }, [volunteers]);
 
+  // Group chats
 
-  const handleCreateGroupChat = (formData: CreateGroupChatFormData) => {
+  useEffect(()=>{
+    const fetchGroups = async()=>{
+        try{
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/chat`,{
+                headers:{
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if(response.data.success){
+                setCreatedGroupChats(response.data.groups)
+            }
+        }
+        catch(err){
+            console.log("Found error while fetching group chats", err)
+        }
+    }
+
+    fetchGroups();
+  },[token])
+
+  const handleCreateGroupChat = async(formData: CreateGroupChatFormData) => {
+    const originalChat = createdGroupChats;
     const newGroupChat: GroupChat = {
-      id: `gc-${Date.now()}`,
+      _id: `gc-${Date.now()}`,
       name: formData.groupName,
-      candidateId: 'current-candidate-id', 
-      volunteerMemberIds: formData.volunteerIds,
-      createdAt: new Date().toISOString(),
+      description :  formData.selectedInterest,
+      volunterIds: formData.volunteerIds,
+      createdAt: new Date().toLocaleString(),
     };
-    setCreatedGroupChats(prev => [...prev, newGroupChat]);
-    console.log('New Group Chat Created:', newGroupChat);
-    setIsCreateGroupChatOpen(false); 
+    try{
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/chat`, newGroupChat, {
+            headers:{
+                "Authorization" : `Bearer ${token}`
+            }
+        });
+
+        if(response.data.success){
+            setCreatedGroupChats(prev => [...prev, newGroupChat]);
+            console.log('New Group Chat Created:', newGroupChat);
+        }
+    }
+    catch(err){
+        setCreatedGroupChats(originalChat);
+        console.log("Error found while creating group" ,err);
+    }
+    finally{
+        setIsCreateGroupChatOpen(false); 
+    }
   };
 
   const handleRequestAction = async(volunteerId: string, action: 'accept' | 'reject') => {
@@ -586,11 +623,11 @@ export default function CandidateDashboardPage() {
                         {createdGroupChats.length > 0 ? (
                              <ul className="space-y-2">
                                 {createdGroupChats.map(chat => (
-                                    <li key={chat.id} className="text-sm p-3 border rounded-md hover:bg-muted/50 transition-colors">
-                                        <Link href={`/chat/${chat.id}?name=${encodeURIComponent(chat.name)}`} className="flex justify-between items-center">
+                                    <li key={chat._id} className="text-sm p-3 border rounded-md hover:bg-muted/50 transition-colors">
+                                        <Link href={`/chat/${chat._id}?name=${encodeURIComponent(chat.name)}`} className="flex justify-between items-center">
                                         <div>
                                             <span className="font-semibold">{chat.name}</span>
-                                            <span className="text-muted-foreground"> ({chat.volunteerMemberIds.length} member(s))</span>
+                                            <span className="text-muted-foreground"> ({chat.members?.length} member(s))</span>
                                         </div>
                                         <Eye className="h-4 w-4 text-primary" />
                                         </Link>

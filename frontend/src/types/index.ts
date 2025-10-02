@@ -152,11 +152,19 @@ export interface Poll {
 }
 
 export interface GroupChat {
-  id: string;
+  _id: string;
   name: string;
-  candidateId: string; // Assuming a candidate creates/owns the chat
-  volunteerMemberIds: string[];
+  description: string,
+  volunterIds: string[];
+  members?: GroupMember[];
   createdAt: string;
+}
+
+export interface GroupMember{
+   userId : string,
+   roleInGroup : string,
+   joinedAt : string,
+   lastReadTimestamp : string,
 }
 
 

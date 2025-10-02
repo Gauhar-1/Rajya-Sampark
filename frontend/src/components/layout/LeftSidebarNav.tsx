@@ -14,6 +14,7 @@ import {
 import { NAV_LINKS, ROLE_PERMISSIONS } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { HideLeftSideBar } from '../auth/RequiredAuth';
 // import { LogOut, Vote } from 'lucide-react';
 
 export function LeftSidebarNav() {
@@ -32,6 +33,7 @@ export function LeftSidebarNav() {
  
 
   return (
+    <HideLeftSideBar>
     <Sidebar side="left" variant="sidebar" collapsible="icon">
       <SidebarHeader className="items-center justify-center p-4 hidden md:flex">
       </SidebarHeader>
@@ -62,5 +64,6 @@ export function LeftSidebarNav() {
         </Button> */}
       </SidebarFooter>
     </Sidebar>
+    </HideLeftSideBar>
   );
 }

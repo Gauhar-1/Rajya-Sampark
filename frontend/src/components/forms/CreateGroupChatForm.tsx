@@ -141,7 +141,7 @@ export function CreateGroupChatForm({ volunteers, onSubmitSuccess, onOpenChange 
                     <div className="space-y-2">
                       {filteredVolunteers.map((volunteer) => (
                         <FormField
-                          key={volunteer.id}
+                          key={volunteer._id}
                           control={control}
                           name="volunteerIds"
                           render={({ field }) => {
@@ -149,20 +149,20 @@ export function CreateGroupChatForm({ volunteers, onSubmitSuccess, onOpenChange 
                               <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2 hover:bg-muted/50 rounded-md">
                                 <FormControl>
                                   <Checkbox
-                                    checked={field.value?.includes(volunteer.id)}
+                                    checked={field.value?.includes(volunteer._id)}
                                     onCheckedChange={(checked) => {
                                       return checked
-                                        ? field.onChange([...field.value, volunteer.id])
+                                        ? field.onChange([...field.value, volunteer._id])
                                         : field.onChange(
                                             field.value?.filter(
-                                              (id) => id !== volunteer.id
+                                              (id) => id !== volunteer._id
                                             )
                                           );
                                     }}
                                   />
                                 </FormControl>
                                 <FormLabel className="font-normal text-sm">
-                                  {volunteer.fullName} ({volunteer.email})
+                                  {volunteer.fullName} ({volunteer.phone})
                                 </FormLabel>
                               </FormItem>
                             );
@@ -180,7 +180,7 @@ export function CreateGroupChatForm({ volunteers, onSubmitSuccess, onOpenChange 
           />
         )}
 
-        <Button type="submit" disabled={isSubmitting || (selectedInterest && filteredVolunteers.length === 0)} className="w-full">
+        <Button type="submit" disabled={isSubmitting || !!(selectedInterest && filteredVolunteers.length === 0)} className="w-full">
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
