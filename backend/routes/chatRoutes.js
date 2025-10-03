@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createGroup, getGroups } from "../controllers/chatController.js";
+import { createGroup, getGroups, getGroupsForVolunter } from "../controllers/chatController.js";
 import { authMiddleware, authorizeRoles } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -7,5 +7,7 @@ const router = Router();
 router.post('/',authMiddleware, authorizeRoles('CANDIDATE', 'ADMIN'), createGroup);
 
 router.get('/',authMiddleware, authorizeRoles('CANDIDATE', "ADMIN"), getGroups);
+
+router.get('/volunteer',authMiddleware, authorizeRoles('VOLUNTEER', "ADMIN"), getGroupsForVolunter);
 
 export default router;

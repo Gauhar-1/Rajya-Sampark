@@ -33,7 +33,7 @@ export default function VolunteerDashboardPage() {
   const [tasks, setTasks] = useState<AssignedTask[]>([]);
   const [posts, setPosts] = useState<VolunteerPost[]>(mockVolunteerPosts);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [groupChats, setGroupChats] = useState<GroupChat[]>(mockVolunteerGroupChats);
+  const [groupChats, setGroupChats] = useState<GroupChat[]>([]);
     const [isCampaignDialogOpen, setIsCampaignDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
 
@@ -137,6 +137,29 @@ export default function VolunteerDashboardPage() {
     setIsCampaignDialogOpen(false);
     setEditingCampaign(null);
   };
+
+  // Groups
+  useEffect(()=>{
+    if(!token) return;
+    const fetchGroups = async()=>{
+      try{
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/chat/volunteer`,{
+          headers:{
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if(response.data.success){
+          setGroupChats(response.data.groups)
+        }
+      }
+      catch(err){
+        console.log('Found error while fetching volunter groups', err);
+      }
+    }
+
+    fetchGroups();
+  },[token])
 
 
   return (
@@ -330,12 +353,12 @@ export default function VolunteerDashboardPage() {
                     {groupChats.length > 0 ? (
                         <ul className="space-y-2">
                             {groupChats.map(chat => (
-                                <li key={chat.id}>
-                                    <Link href={`/chat/${chat.id}?name=${encodeURIComponent(chat.name)}`} passHref>
+                                <li key={chat._id}>
+                                    <Link href={`/chat/${chat._id}?name=${encodeURIComponent(chat.name)}`} passHref>
                                         <div className="flex items-center justify-between p-3 border-4 border-black bg-white rounded-md hover:bg-violet-900 hover:text-white transition-colors cursor-pointer ">
                                             <div>
                                                 <p className="font-semibold">{chat.name}</p>
-                                                <p className="text-sm text-muted-foreground">Managed by: {chat.candidateId}</p>
+                                                <p className="text-sm text-muted-foreground">Managed by: {chat.createdBy.phone}</p>
                                             </div>
                                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                         </div>

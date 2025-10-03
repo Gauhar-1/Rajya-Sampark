@@ -58,3 +58,22 @@ catch(err){
         console.log("Found error while fetching group chat", err);
     }
  }
+
+ export const getGroupsForVolunter = async(req, res)=>{
+    const profile = req.user;
+
+    try{
+        const volunteer = await Volunteer.findOne({ phone: profile.phone});
+
+        if(!volunteer) return res.status(400).json({ message: "Volunter not found"});
+
+        const groups = await Group.find({ 'members.userId': volunteer._id }).populate('createdBy');
+
+        if(groups.length == 0) return res.status(400).json({ message: "No group found"});
+
+        res.status(200).json({ success: true, groups});
+    }
+    catch(err){
+        console.log("Error found while fetching volunteer groups",err);
+    }
+ }

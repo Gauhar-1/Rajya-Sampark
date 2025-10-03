@@ -155,6 +155,7 @@ export interface GroupChat {
   _id: string;
   name: string;
   description: string,
+  createdBy: User,
   volunterIds: string[];
   members?: GroupMember[];
   createdAt: string;
