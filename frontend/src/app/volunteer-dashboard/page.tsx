@@ -358,7 +358,7 @@ export default function VolunteerDashboardPage() {
                                         <div className="flex items-center justify-between p-3 border-4 border-black bg-white rounded-md hover:bg-violet-900 hover:text-white transition-colors cursor-pointer ">
                                             <div>
                                                 <p className="font-semibold">{chat.name}</p>
-                                                <p className="text-sm text-muted-foreground">Managed by: {chat.createdBy.phone}</p>
+                                                <p className="text-sm text-muted-foreground">Managed by: {chat.createdBy?.name}</p>
                                             </div>
                                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                         </div>
@@ -367,7 +367,7 @@ export default function VolunteerDashboardPage() {
                             ))}
                         </ul>
                     ) : (
-                        <div className="text-center text-muted-foreground py-8">
+                        <div className="text-center text-white py-8">
                             <MessageSquare className="mx-auto h-12 w-12 mb-4" />
                             <h3 className="text-lg font-semibold">No Group Chats Yet</h3>
                             <p className="text-sm">Candidates will add you to group chats here for coordination.</p>

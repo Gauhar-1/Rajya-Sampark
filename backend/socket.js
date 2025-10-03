@@ -3,6 +3,8 @@ import app from "./app.js";
 import { Server } from "socket.io";
 import jwt from 'jsonwebtoken'
 import Message from "./models/Message.js";
+import Group from "./models/Group.js";
+import { Schema } from "mongoose";
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -32,9 +34,16 @@ io.on("connection", (socket)=>{
         socket.join(groupId);
 
         try{
-            const message = await Message.find({ groupId}).populate('senderId');
+            const group = await Group.findById(groupId);
 
-            io.to(groupId).emit('allMessage', message);
+            if(!group) {
+                socket.emit('error', { message: "No group found" });
+                return;
+            }
+
+            const messages = await Message.find({ groupId }).populate('senderId');
+
+            io.to(groupId).emit('allMessage', { messages, groupDescription: group.description });
         }
         catch(err){
             console.log("Error found while sending All message", err);
@@ -64,7 +73,7 @@ io.on("connection", (socket)=>{
             const newMessage = new Message(messageData);
             await newMessage.save();
 
-            const populatedMessage = await Message.find({ groupId }).populate('senderId');
+            const populatedMessage = await newMessage.populate('senderId');
 
             io.to(groupId).emit('newMessage', populatedMessage);
             console.log(`Message from ${socket.user.profile.name} in room ${groupId}: ${content}`);

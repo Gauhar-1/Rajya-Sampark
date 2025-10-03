@@ -20,7 +20,8 @@ export default function ChatPage() {
   const { token, user } = useAuth()
   const socketRef = useRef<Socket | null>(null);
   const [ messages, setMessages ] = useState<Message[]>([]);
-  const [ content, setContent ] = useState<String | null>(null);
+  const [ content, setContent ] = useState<string>('');
+  const [ description, setDescription ] = useState('');
 
   useEffect(()=>{
     if(!token) return;
@@ -39,10 +40,15 @@ export default function ChatPage() {
     });
 
     socket.on('newMessage',(newMessage)=>{
+      console.log("New message", newMessage);
       setMessages((prev) => [...prev, newMessage]);
     });
 
-    socket.on('allMessage',(messages)=> setMessages(messages));
+    socket.on('allMessage',(data)=> {
+      const { messages, groupDescription } = data;
+      setMessages(messages);
+      setDescription(groupDescription);
+    });
 
     socket.on('connect_error', (error)=>{
       console.log('Connection error:', error);
@@ -61,6 +67,14 @@ export default function ChatPage() {
       content,
       groupId
     });
+    setContent('');
+  }
+
+  const checkSender = (id : string)=>{
+
+    if(!user || !user._id) return console.log("User not found here");
+
+    return user._id == id;
   }
 
   return (
@@ -73,18 +87,17 @@ export default function ChatPage() {
               </Button>
             <CardTitle className="text-xl">{groupName}</CardTitle>
           </div>
-          <CardDescription>This is a placeholder chat interface. Messaging is not functional.</CardDescription>
+          <CardDescription>{description}</CardDescription>
         </CardHeader>
         
         <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
          {messages.map(message =>{
 
-         const isSender = user?._id == message.senderId._id;
-         const isAdmin = user?.role == 'CANDIDATE' || 'ADMIN' ? true : false;
-           
+         const isSender = checkSender(message.senderId._id);
+         
          return (<div className={`flex ${ isSender ? "justify-end" : "justify-start"}`}>
             <div className={` ${ isSender ? "bg-primary text-primary-foreground" : "bg-muted"} p-3 flex flex-col gap-2 rounded-lg w-1/2`}>
-              <p className="text-sm font-semibold text-shadow-lg">{isAdmin ? "Admin": "Volunteer"} {message.senderId.name}</p>
+              <p className="text-sm font-semibold text-shadow-lg">{message.senderId.name}</p>
               <p className="text-sm">{message.content}</p>
               <p className="text-xs text-gray-400 text-right">{new Date(message.createdAt).toLocaleTimeString()}</p>
             </div>
@@ -100,6 +113,7 @@ export default function ChatPage() {
               placeholder="Type your message here..."
               className="flex-grow resize-none"
               rows={1}
+              value={content}
               onChange={(e)=>{
                  setContent(e.target.value);
               }}

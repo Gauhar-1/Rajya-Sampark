@@ -12,6 +12,7 @@ export const  authMiddleware = (req, res, next) => {
     req.user = decoded.profile;
     next();
   } catch (err) {
+    console.log("Error from middleware", err.message);
     return res.status(401).json({ message: 'Invalid token', error: err });
   }
 };

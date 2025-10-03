@@ -118,7 +118,7 @@ export default function CandidateDashboardPage() {
         try{
             const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/chat`,{
                 headers:{
-                    'Authorization': `Bearer ${token}`
+                    "Authorization": `Bearer ${token}`
                 }
             });
 
@@ -137,7 +137,6 @@ export default function CandidateDashboardPage() {
   const handleCreateGroupChat = async(formData: CreateGroupChatFormData) => {
     const originalChat = createdGroupChats;
     const newGroupChat: GroupChat = {
-      _id: `gc-${Date.now()}`,
       name: formData.groupName,
       description :  formData.selectedInterest,
       volunterIds: formData.volunteerIds,

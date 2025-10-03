@@ -152,10 +152,10 @@ export interface Poll {
 }
 
 export interface GroupChat {
-  _id: string;
+  _id?: string;
   name: string;
   description: string,
-  createdBy: User,
+  createdBy?: User,
   volunterIds: string[];
   members?: GroupMember[];
   createdAt: string;

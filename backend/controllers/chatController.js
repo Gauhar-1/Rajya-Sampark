@@ -32,7 +32,7 @@ import Volunteer from "../models/Volunteer.js";
     const newGroup = new Group({
         name,
         description,
-        createdBy: profile.uid,
+        createdBy: profile._id,
         members
     })
 
@@ -48,7 +48,7 @@ catch(err){
  export const getGroups = async(req, res)=>{
     const profile = req.user;
     try{
-        const groups = await Group.find({ createdBy : profile.uid });
+        const groups = await Group.find({ createdBy : profile._id });
 
         if(!groups) return res.status(400).json({ message : "Didn't find groups "});
 
