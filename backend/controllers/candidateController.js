@@ -4,14 +4,8 @@ import User from "../models/User.js";
  export const registerCandidate = async (req, res) => {
   try {
     const { name, party, region, keyPolicies, manifestoUrl, imageUrl, profileBio } = req.body;
-    // const { uid } = req.user;
 
-    // if(!uid){
-    //   console.log("Missing UserId");
-    // }
-
-
-    const user = await User.findOne({name });
+    const user = await User.findOne({ name });
     if(!user){
         return res.status(400).json({ msg: 'User not found' });
     }

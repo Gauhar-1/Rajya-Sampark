@@ -248,3 +248,13 @@ export interface VolunteerCampaign {
   location: string;
   createdAt: string;
 }
+
+export interface Report {
+  id : string,
+  title: string,
+  description: string,
+  category: string,
+  status: string,
+  dateSubmitted: string,
+  isAnonymous: boolean
+}

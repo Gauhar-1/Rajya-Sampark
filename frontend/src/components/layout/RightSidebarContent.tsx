@@ -71,8 +71,7 @@ export function RightSidebarContent() {
 
   return (
     <HideRightSideBar>
-      
-    <div className="space-y-6">
+    <div className="space-y-6 w-80 xl:w-96 flex-shrink-0  hidden lg:block overflow-y-auto">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-xl">

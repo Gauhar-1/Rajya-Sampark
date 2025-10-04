@@ -79,7 +79,7 @@ export default function LoginPage() {
 
   return (
       <div className="flex min-h-[calc(100vh-10rem)] px-6 rounded-lg  min-w-full items-center bg-primary shadow-2xl  justify-center">
-        <Card className="w-full min-w-lg shadow-xl">
+        <Card className="shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl flex items-center justify-center">
               <KeyRound className="mr-2 h-6 w-6" />

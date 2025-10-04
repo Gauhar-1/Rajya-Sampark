@@ -16,15 +16,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex flex-1 pt-16">
           <LeftSidebarNav />
           <SidebarInset className="flex flex-1 p-2">
-              <div className="flex flex-col lg:flex-row gap-1">
+              <div className="flex gap-1">
                 <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8"> 
-                  <div className=' w-full'>
+                  <div className='flex-1'>
                   {children}
                   </div>
                 </main>
-                <div className=" w-80 xl:w-96 flex-shrink-0  hidden lg:block overflow-y-auto">
-                  <RightSidebarContent />
-                </div>
+                <RightSidebarContent  />
+                {/* <div className=" w-80 xl:w-96 flex-shrink-0  hidden lg:block overflow-y-auto">
+                </div> */}
               </div>
           </SidebarInset>
         </div>

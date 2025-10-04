@@ -104,7 +104,6 @@ export default function AdminPage() {
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
 
-  // Memoized filters
 
   useEffect(()=>{
     if(!token){

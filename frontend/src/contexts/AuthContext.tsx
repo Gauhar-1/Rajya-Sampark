@@ -120,8 +120,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
        console.error("Failed to remove user from localStorage", error);
     }
+    finally{
+      setIsLoading(false);
+      router.push('/');
+    }
 
-    setIsLoading(false);
   };
 
   useEffect(() => {

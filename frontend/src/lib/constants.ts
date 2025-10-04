@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Home, Users, CalendarDays, FileText, Search, Vote, HandHeart, LayoutDashboard, ShieldCheck, ListTodo  } from 'lucide-react';
+import { Home, Users, CalendarDays, FileText, Proportions, Search, Vote, HandHeart, LayoutDashboard, ShieldCheck, ListTodo  } from 'lucide-react';
 
 export interface NavLink {
   href: string;
@@ -12,6 +12,7 @@ export const NAV_LINKS: NavLink[] = [
   { href: '/candidates', label: 'Candidate Directory', icon: Users },
   { href: '/timeline', label: 'Election Timeline', icon: CalendarDays },
   { href: '/manifesto-summarizer', label: 'Manifesto Summaries', icon: FileText },
+  { href: '/report', label: 'Report Issue', icon: Proportions },
   { href: '/campaigns', label: 'Campaign Discovery', icon: Search },
   { href: '/volunteer-signup', label: 'Volunteer Signup', icon: HandHeart },
   { href: '/candidate-dashboard', label: 'Candidate Panel', icon: LayoutDashboard },
@@ -33,8 +34,8 @@ export const INTEREST_AREAS = [
 
 export const ROLE_PERMISSIONS: Record<string, string[]> = {
   ANONYMOUS: ["/"],
-  VOTER: ["/", "/candidates",'/timeline' , '/manifesto-summarizer', '/campaigns' ,'/volunteer-signup'],
-  VOLUNTEER: ["/", "/candidates",'/timeline' , '/manifesto-summarizer', '/campaigns' ,'/volunteer-dashboard'],
-  CANDIDATE: ["/", "/candidates",'/timeline' , '/manifesto-summarizer', '/campaigns' ,'/candidate-dashboard'],
-  ADMIN: ["/", "/candidates",'/timeline' , '/manifesto-summarizer', '/campaigns' ,'/volunteer-signup', '/volunteer-dashboard','/candidate-dashboard','/admin' ],
+  VOTER: ["/", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-signup'],
+  VOLUNTEER: ["/", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-dashboard'],
+  CANDIDATE: ["/", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/candidate-dashboard'],
+  ADMIN: ["/", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-signup', '/volunteer-dashboard','/candidate-dashboard','/admin' ],
 }
