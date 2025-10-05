@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Loader2, Video } from 'lucide-react';
 import type { VideoPostFeedItem } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCloud } from '@/hooks/use-cloudinary';
 
 const createVideoSchema = z.object({
   content: z.string().max(500, 'Caption is too long.').optional(),
@@ -37,6 +39,8 @@ interface CreateVideoFormProps {
 export function CreateVideoForm({ onSubmitSuccess, onOpenChange }: CreateVideoFormProps) {
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { isLoading, error, progress, uploadFile } = useCloud();
   const form = useForm<CreateVideoFormData>({
     resolver: zodResolver(createVideoSchema),
     defaultValues: {
@@ -49,38 +53,39 @@ export function CreateVideoForm({ onSubmitSuccess, onOpenChange }: CreateVideoFo
   const videoFileWatch = watch('videoFile');
 
   React.useEffect(() => {
-    if (videoFileWatch && videoFileWatch.length > 0) {
-      const file = videoFileWatch[0];
-      if (file) {
-        setFileName(file.name);
-        const objectUrl = URL.createObjectURL(file);
-        setVideoPreview(objectUrl);
-        // Clean up the object URL when the component unmounts or file changes
-        return () => URL.revokeObjectURL(objectUrl);
+    const uploadVideo = async() => {
+      if (videoFileWatch && videoFileWatch.length > 0) {
+        const file = videoFileWatch[0];
+        if (file) {
+          const uploadUrl = await uploadFile(file);
+          setVideoPreview(uploadUrl);
+        }
+      } else {
+        setVideoPreview(null);
+        setFileName(null);
       }
-    } else {
-      setVideoPreview(null);
-      setFileName(null);
     }
+    uploadVideo();
   }, [videoFileWatch]);
 
 
   const processSubmit: SubmitHandler<CreateVideoFormData> = async (data) => {
     if (!data.videoFile || data.videoFile.length === 0 || !videoPreview) {
-      // Should be caught by validation, but good to double check
       return;
     }
     
     const newVideoPost: VideoPostFeedItem = {
-      id: `video-${Date.now()}`,
+      _id: `video-${Date.now()}`,
       timestamp: new Date().toISOString(),
-      creatorName: 'Current User', // Placeholder
-      creatorImageUrl: 'https://placehold.co/40x40.png?text=CU',
       creatorDataAiHint: 'person face',
       itemType: 'video_post',
       content: data.content,
-      mediaUrl: videoPreview, // Object URL for local preview
+      mediaUrl: videoPreview, 
       mediaDataAiHint: 'user uploaded video',
+      profileId: user,
+      likes : 0,
+      comments : 0,
+      shares : 0,
     };
     
     onSubmitSuccess(newVideoPost);
@@ -102,7 +107,8 @@ export function CreateVideoForm({ onSubmitSuccess, onOpenChange }: CreateVideoFo
           className="file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-muted file:text-muted-foreground hover:file:bg-primary/10"
         />
         {fileName && <p className="text-sm text-muted-foreground mt-1">Selected: {fileName}</p>}
-        {errors.videoFile && <p className="text-sm text-destructive mt-1">{errors.videoFile.message as string}</p>}
+        {isLoading && <div>Progress {progress}%</div>}
+        {error && <p className="text-sm text-destructive mt-1">{error as string}</p>}
       </div>
 
       {videoPreview && (
@@ -122,13 +128,13 @@ export function CreateVideoForm({ onSubmitSuccess, onOpenChange }: CreateVideoFo
         {errors.content && <p className="text-sm text-destructive mt-1">{errors.content.message}</p>}
       </div>
 
-      <Button type="submit" disabled={isSubmitting || !videoPreview} className="w-full">
-        {isSubmitting ? (
+      <Button type="submit" disabled={isLoading || !videoPreview} className="w-full">
+        {isLoading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <Video className="mr-2 h-4 w-4" />
         )}
-        {isSubmitting ? 'Posting Video...' : 'Post Video'}
+        {isLoading ? 'Posting Video...' : 'Post Video'}
       </Button>
     </form>
   );

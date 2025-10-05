@@ -240,6 +240,7 @@ export default function HomePage() {
 
   const addNewFeedItem = (newPost: TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem | PollFeedItem) => {
 
+    console.log("New post", newPost);
     setFeedItems(prevItems =>
       [newPost, ...prevItems].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     );
@@ -248,8 +249,6 @@ export default function HomePage() {
   const handleCreatePost = async(newPost: TextPostFeedItem | ImagePostFeedItem) => {
 
     const { content , itemType, mediaUrl} = newPost;
-
-    console.log("mediaUrl", mediaUrl);
 
     try{
       const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post`, {
@@ -263,8 +262,8 @@ export default function HomePage() {
     })
 
     if(response.data.success){
-      const { popluplatedPost } = response.data;
-      addNewFeedItem( popluplatedPost );
+      const { populatedPost } = response.data;
+      addNewFeedItem( populatedPost );
     }
   }
     catch(err){
