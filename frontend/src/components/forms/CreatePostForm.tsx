@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Send, Loader2, ImagePlus } from 'lucide-react';
+import { Send, Loader2, ImagePlus, Divide } from 'lucide-react';
 import type { ImagePostFeedItem, TextPostFeedItem } from '@/types';
 import Image from 'next/image'; // For image preview
+import { useCloud } from '@/hooks/use-cloudinary';
+import { useAuth } from '@/contexts/AuthContext';
 
 const createPostSchema = z.object({
   content: z.string().max(1000, 'Post content is too long.').optional(), // Optional if image is provided
@@ -30,7 +32,9 @@ interface CreatePostFormProps {
 }
 
 export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostFormProps) {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [ imagePreview, setImagePreview] = useState<string | null>(null);
+  const { isLoading, progress, error, uploadFile } = useCloud();
+  const { user } = useAuth();
   const form = useForm<CreatePostFormData>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
@@ -43,35 +47,46 @@ export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostForm
   const imageFileWatch = watch('imageFile');
 
   React.useEffect(() => {
-    if (imageFileWatch && imageFileWatch.length > 0) {
-      const file = imageFileWatch[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+    const uploadImage = async()=>{
+      if (imageFileWatch && imageFileWatch.length > 0) {
+        const file = imageFileWatch[0];
+        if (file) {
+            const uploadedUrl = await uploadFile(file);
+  
+        if(!uploadedUrl){
+          console.error("upload failed, post not created.");
+          return;
+        }
+  
+        setImagePreview(uploadedUrl);
+        }
+      } else {
+        setImagePreview(null);
       }
-    } else {
-      setImagePreview(null);
     }
+    uploadImage();
   }, [imageFileWatch]);
 
   const processSubmit: SubmitHandler<CreatePostFormData> = async (data) => {
     const commonData = {
-      id: `post-${Date.now()}`,
+      _id: `post-${Date.now()}`,
+      profileId: user,
+      likes : 0,
+      comments : 0,
+      shares: 0,
       timestamp: new Date().toISOString(),
       creatorName: 'Current User', // Placeholder
       creatorImageUrl: 'https://placehold.co/40x40.png?text=CU',
       creatorDataAiHint: 'person face',
     };
 
-    if (data.imageFile && data.imageFile.length > 0 && imagePreview) {
+    if (data.imageFile && data.imageFile.length > 0) {
+
       const newImagePost: ImagePostFeedItem = {
         ...commonData,
         itemType: 'image_post',
         content: data.content || '',
-        mediaUrl: imagePreview, // Using the base64 preview as the mediaUrl for client-side display
+        mediaUrl: imagePreview || '', 
         mediaDataAiHint: 'user uploaded image',
       };
       onSubmitSuccess(newImagePost);
@@ -80,6 +95,7 @@ export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostForm
         ...commonData,
         itemType: 'text_post',
         content: data.content,
+        mediaUrl: null,
       };
       onSubmitSuccess(newTextPost);
     }
@@ -120,6 +136,8 @@ export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostForm
           <Image src={imagePreview} alt="Image preview" layout="fill" objectFit="contain" />
         </div>
       )}
+      {isLoading && <div>Uploading: {progress}%</div>}
+      { error && <div style={{ color: 'red' }}>{error}</div>}
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
         {isSubmitting ? (
@@ -127,7 +145,7 @@ export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostForm
         ) : (
           <Send className="mr-2 h-4 w-4" />
         )}
-        {isSubmitting ? 'Posting...' : 'Create Post'}
+        {isLoading ? 'Uploading...' : 'Create Post'}
       </Button>
     </form>
   );

@@ -27,7 +27,7 @@ export interface Candidate {
 
 interface BaseFeedItem {
   _id: string;
-  profileId: User;
+  profileId: User | null;
   timestamp: string; // ISO string
   creatorDataAiHint?: string;
   likes: number;

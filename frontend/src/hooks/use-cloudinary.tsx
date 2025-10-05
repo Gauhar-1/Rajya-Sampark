@@ -2,43 +2,60 @@ import axios from "axios";
 import { useToast } from "./use-toast";
 import { useState } from "react";
 
+interface UseCloundinaryUpload {
+  isLoading: boolean;
+  progress: number;
+  error: string | null;
+  uploadFile: (file: File) => Promise<string | null>;
+}
 
-export const useCloud = ()=>{
+export const useCloud = () : UseCloundinaryUpload=>{
     const {toast} = useToast();
-    const [ dataUrl,  setDataUrl ] = useState<string | null>(null);
+    const [ isLoading, setIsLoading ] = useState<boolean>(false);
+    const [ progress, setProgress ] = useState<number>(0);
+    const [ error, setError ] = useState<string | null>(null);
 
-    const uploadFile = async(file : File)=>{
-      if (!file) {
-      return;
-    }
-      if (file.size > 2 * 1024 * 1024) { 
-        toast({ title: 'File too large', description: 'Please upload an image smaller than 2MB.', variant: 'destructive' });
-        return;
-      }
+    const uploadFile = async(file : File) : Promise<string | null>=>{
+      setIsLoading(true);
+      setError(null);
+      setProgress(0);
 
       try{
+
+        const { signature, timestamp, api_key, cloud_name } = await axios.post(`/api/sign-cloudinary-upload`).then(res => res.data);
+
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'designsByAfreen');
+        formData.append('signature', signature);
+        formData.append('timestamp', timestamp);
+        formData.append('api_key', api_key);
 
-        const res = await axios.post('https://api.cloudinary.com/v1_1/dccklqtaw/image/upload', formData);
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${cloud_name}/auto/upload`
 
-        const { data } = res;
+        const res = await axios.post(uploadUrl, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress : (ProgressEvent) =>{
+            if(ProgressEvent.total){
+              setProgress(Math.round((ProgressEvent.loaded * 100)/ ProgressEvent.total));
+            }
+          }
+        });
 
-        if(data.secure_url){
-            setDataUrl(data.secure_url);
-            console.log('Image uploaded successfully:', data.secure_url);
-        } else {
-      throw new Error('Image upload failed');
-    }
+        return res.data.secure_url;
       } catch (err) {
-    console.error(err);
+    console.error("Error Found while uploading the file",err);
     toast({ title: 'Upload failed', description: 'Something went wrong during image upload.', variant: 'destructive' });
+    return null;
+  }
+  finally{
+    setIsLoading(false);
   }
     }
 
     return {
-        dataUrl,
-        uploadFile
+      isLoading,
+      progress,
+      error,
+      uploadFile
     }
 }

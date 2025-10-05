@@ -6,6 +6,8 @@ import Post from "../models/Post.js";
     const { content, itemType, mediaUrl } = req.body;
     const profile = req.user;
 
+    if(itemType == "image_post" && mediaUrl == '') return res.status(404).json({ message: "Image Url not found"});
+
     try{
         const post = await Post.create({
         profileId : profile._id,

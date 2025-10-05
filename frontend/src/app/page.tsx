@@ -33,6 +33,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCloud } from '@/hooks/use-cloudinary';
 
 
 interface FeedItemCardProps {
@@ -141,14 +142,14 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
     <Card  className="mb-6 shadow-lg rounded-lg overflow-hidden">
       <CardHeader className="flex flex-row items-center space-x-3 p-4">
         <Avatar>
-          {item.profileId.photoURL ? (
+          {item.profileId?.photoURL ? (
             <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} data-ai-hint={item.creatorDataAiHint || "person face"} />
           ) : null}
-          <AvatarFallback>{item.profileId.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+          <AvatarFallback>{item.profileId?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div>
           <CardTitle className="text-base font-semibold flex items-center">
-            {item.profileId.name}
+            {item.profileId?.name}
           </CardTitle>
           <p className="text-xs text-muted-foreground">
             Posted {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
@@ -217,6 +218,7 @@ export default function HomePage() {
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const { toast } = useToast();
   const { token, user } = useAuth();
+  
 
   useEffect(()=>{
     const getFeed = async()=>{
@@ -246,7 +248,9 @@ export default function HomePage() {
   const handleCreatePost = async(newPost: TextPostFeedItem | ImagePostFeedItem) => {
 
     const { content , itemType, mediaUrl} = newPost;
-    
+
+    console.log("mediaUrl", mediaUrl);
+
     try{
       const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post`, {
       content,
