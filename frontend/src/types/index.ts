@@ -25,6 +25,13 @@ export interface Candidate {
   profileBio?: string;
 }
 
+export interface Comment {
+  _id: string;
+  profileId: User | null;
+  content:string | null;
+  timestamp: string;
+}
+
 interface BaseFeedItem {
   _id: string;
   profileId: User | null;

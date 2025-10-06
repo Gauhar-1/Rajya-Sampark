@@ -12,7 +12,7 @@ import {
   Edit3, BarChart2, Video as VideoIcon, Search as SearchIcon
 } from 'lucide-react';
 import { initialFeedItems as mockInitialFeedItems } from '@/lib/mockData';
-import type { FeedItem, TextPostFeedItem, ImagePostFeedItem, VideoPostFeedItem, CampaignFeedItem, PollFeedItem, PollOption as FeedPollOption, Campaign, Poll, hasVoted } from '@/types';
+import type { FeedItem, TextPostFeedItem, ImagePostFeedItem, VideoPostFeedItem, CampaignFeedItem, PollFeedItem, PollOption as FeedPollOption, Campaign, Poll, hasVoted, Comment } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Tooltip,
@@ -34,6 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloud } from '@/hooks/use-cloudinary';
+import { Input } from '@/components/ui/input';
 
 
 interface FeedItemCardProps {
@@ -46,6 +47,9 @@ interface FeedItemCardProps {
 
 function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItemCardProps) {
   const [isLikedByClient, setIsLikedByClient] = useState(false);
+  const [ isCommentClicked, setIsCommentClicked ] = useState<boolean>(false);
+  const [ comments, setComments ] = useState<Comment[]>([]);
+  const [ commentOnPost, setCommentOnPost ] = useState<string | null>(null);
   const { user } = useAuth();
 
   const handleLikeClick = () => {
@@ -57,15 +61,30 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
     setIsLikedByClient(!isLikedByClient);
   };
 
+  const handleComment = ()=>{
+    const comment : Comment = {
+      _id : `pc-${Date.now()}`,
+      profileId : user,
+      content : commentOnPost,
+      timestamp : new Date().toISOString(),
+    }
+    console.log("Comment timestamp: ", comment.timestamp);
+    console.log("Post timestamp: ", item.timestamp);
+
+    setComments((prev)=> [...prev, comment]);
+    setCommentOnPost(null);
+  }
+
   const renderMedia = () => {
     if (item.itemType === 'image_post' && item.mediaUrl) {
       return (
-        <div className="rounded-md overflow-hidden border aspect-video relative">
+        <div className="rounded-md bg-black overflow-hidden border aspect-video relative">
           <Image
+          className='shadow-2xl'
             src={item.mediaUrl}
             alt="Post image"
             layout="fill"
-            objectFit="cover"
+            objectFit="contain"
             data-ai-hint={item.mediaDataAiHint || "social media image"}
           />
         </div>
@@ -73,8 +92,8 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
     }
     if (item.itemType === 'video_post' && item.mediaUrl) {
       return (
-        <div className="rounded-md overflow-hidden border">
-          <video src={item.mediaUrl} controls className="w-full aspect-video" data-ai-hint={item.mediaDataAiHint || "social media video"}/>
+        <div className="rounded-md overflow-hidden border ">
+          <video src={item.mediaUrl} controls   className="w-full aspect-video " data-ai-hint={item.mediaDataAiHint || "social media video"}/>
         </div>
       );
     }
@@ -161,7 +180,7 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
         {renderMedia()}
       </CardContent>
       {(item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post') && (
-        <CardFooter className="flex justify-around p-2 border-t">
+        <CardFooter className=" flex justify-around p-2 border-t">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -172,18 +191,22 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
                   onClick={handleLikeClick}
                   aria-label={isLikedByClient ? `Unlike post, current likes ${item.likes}` : `Like post, current likes ${item.likes}`}
                 >
-                  <Heart className="h-5 w-5" fill={isLikedByClient ? "currentColor" : "none"} />
+                  <Heart className="h-8 w-8" fill={isLikedByClient ? "currentColor" : "none"} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{isLikedByClient ? 'Unlike' : 'Like'} ({item.likes})</p>
+                <p>{'Like'} ({item.likes})</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() => onComment(item._id)} aria-label={`Comment on post, current comments ${item.comments}`}>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() =>{ 
+                  // onComment(item._id);
+                  setIsCommentClicked(true);
+                }
+                } aria-label={`Comment on post, current comments ${item.comments}`}>
                   <MessageCircle className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
@@ -206,6 +229,83 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
           </TooltipProvider>
         </CardFooter>
       )}
+
+      <Dialog open={isCommentClicked} onOpenChange={setIsCommentClicked}>
+        <DialogContent className='border-none w-3/4 h-5/6 my-4 max-w-5xl max-h-screen p-0'>
+          <div className='rounded-lg grid grid-cols-2 h-full'>
+            <div className='h-full bg-black w-full flex justify-center overflow-hidden aspect-video'>
+              {item.itemType == "image_post" && item.mediaUrl && (
+                          <img src={item.mediaUrl} alt="" className='h-full bg-black ' />
+              )}
+              {item.itemType == "video_post" && item.mediaUrl && (
+                <div className="flex justify-center items-center rounded-md h-full overflow-hidden bg-white">
+          <video src={item.mediaUrl} controls className="h-full aspect-video" />
+        </div>
+              )}
+              {item.itemType == "text_post" && (
+                <div className='bg-gray-300 w-full border-2 p-3'>
+                  <div className='border-2 p-3 bg-white rounded-lg shadow-lg h-1/2'>{item.content}</div>
+                  </div>
+              )}
+            </div>
+
+            {/* right half */}
+            <div className='flex flex-col h-full rounded-r-lg bg-gray-600'>
+              <div className='flex gap-2 p-2 shadow-lg'>
+                <Avatar className='border-none shadow-lg'>
+          {item.profileId?.photoURL ? (
+            <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} data-ai-hint={item.creatorDataAiHint || "person face"} />
+          ) : null}
+          <AvatarFallback >{item.profileId?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div>
+          <div className="text-white text-base font-semibold flex items-center text-shadow-lg">
+            {item.profileId?.name}
+          </div>
+          <p className="text-xs text-shadow-lg text-gray-300">
+            Posted {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+          </p>
+        </div>
+              </div>
+
+               {/* Comment section */}
+              <div className='flex-1 border-b-2 overflow-y-auto'>
+                {comments.map( (item) =>
+                <div className='flex gap-2 p-2'>
+                <Avatar className='border-none shadow-lg h-8 w-8'>
+          {item.profileId?.photoURL ? (
+            <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} />
+          ) : null}
+          <AvatarFallback >{item.profileId?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className='flex flex-col gap-1'>
+          <div className='flex gap-2 items-start'>
+            <p className='text-xs text-gray-300 font-mono'>
+              <b className='text-white text-sm'>{item.profileId?.name}</b> {item.content}</p>
+          </div>
+          <p className="text-xs font-medium text-gray-300">
+             {(formatDistanceToNow(new Date(item.timestamp))).replace('about', '')}
+          </p>
+        </div>
+              </div>)}
+              </div>
+
+              {/* Footer section */}
+              <div className='flex gap-4 my-4 mx-2'>
+                <Heart color='white'/>
+                <MessageCircle color='white'/>
+                <Share2 color='white'/>
+              </div>
+              <div className='flex mb-1'>
+                <Input placeholder='Comment..' value={commentOnPost || ''} className='text-white bg-gray-600 mx-1' onChange={(e)=>{
+                  setCommentOnPost(e.target.value);
+                }}/>
+                <Button className='bg-gray-600 mx-1 border-2 border-white' onClick={handleComment}>Post</Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
