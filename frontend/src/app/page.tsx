@@ -35,6 +35,7 @@ import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCloud } from '@/hooks/use-cloudinary';
 import { Input } from '@/components/ui/input';
+import { timeStamp } from 'console';
 
 
 interface FeedItemCardProps {
@@ -50,7 +51,31 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
   const [ isCommentClicked, setIsCommentClicked ] = useState<boolean>(false);
   const [ comments, setComments ] = useState<Comment[]>([]);
   const [ commentOnPost, setCommentOnPost ] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+
+  useEffect(()=>{
+    if(!token || !isCommentClicked) return;
+
+    const getComments = async()=>{
+      try{
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/${item._id}/comment`,{
+          headers:{
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if(response.data.success){
+          setComments(response.data.comments);
+        }
+      }
+      catch(err){
+        console.log("Error found while getting comments", err);
+      }
+    }
+
+    getComments();
+
+  },[token, isCommentClicked])
 
   const handleLikeClick = () => {
     if (isLikedByClient) {
@@ -61,18 +86,37 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
     setIsLikedByClient(!isLikedByClient);
   };
 
-  const handleComment = ()=>{
+  const handleComment = async()=>{
     const comment : Comment = {
       _id : `pc-${Date.now()}`,
+      postId : item._id,
       profileId : user,
       content : commentOnPost,
       timestamp : new Date().toISOString(),
     }
-    console.log("Comment timestamp: ", comment.timestamp);
-    console.log("Post timestamp: ", item.timestamp);
 
-    setComments((prev)=> [...prev, comment]);
-    setCommentOnPost(null);
+    try{
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/comment`, {
+        content : comment.content,
+        timestamp: comment.timestamp,
+        postId : comment.postId
+      } ,{
+        headers:{
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if(response.data.success){
+        setComments((prev)=> [...prev, response.data.populatedComment]);
+      }
+    }
+    catch(err){
+      console.error("Error while posting comment", err);
+    }
+    finally{
+      setCommentOnPost(null);
+    }
+
   }
 
   const renderMedia = () => {

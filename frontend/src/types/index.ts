@@ -27,6 +27,7 @@ export interface Candidate {
 
 export interface Comment {
   _id: string;
+  postId : string;
   profileId: User | null;
   content:string | null;
   timestamp: string;

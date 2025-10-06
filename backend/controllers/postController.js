@@ -1,4 +1,5 @@
-import { profile } from "console";
+import mongoose from "mongoose";
+import Comment from "../models/Comment.js";
 import Poll from "../models/Poll.js";
 import Post from "../models/Post.js";
 
@@ -106,5 +107,51 @@ catch(err){
     catch(err){
         console.log("Error found while voting the poll" , err);
         res.status(400).json( { error: err.message });
+    }
+ }
+
+ export const postComment = async(req, res)=>{
+    const { content, timestamp, postId } = req.body;
+    const profile = req.user;
+
+    if(!postId) return res.status(404).json({ message : "Post Id missing" });
+
+    if(!content || !timestamp) return res.status(404).json({ message: "Field missing"});
+
+    try{
+        const newComment = new Comment({
+            postId,
+            profileId : profile._id,
+            content,
+            timestamp 
+        });
+
+        await newComment.save();
+
+        const populatedComment = await newComment.populate('profileId');
+
+        res.status(200).json({ success: true, populatedComment });
+    }
+    catch(error){
+        console.error("Error found while posting comment", error);
+        res.status(500).json({ error });
+    }
+ }
+
+ export const getComments = async(req, res)=>{
+    const { id } = req.params;
+
+    if(!id) return res.status(404).json({ message : "Post Id missing "});
+
+    try{
+        const comments = await Comment.find({ postId : id}).populate('profileId');
+
+        if(comments.length == 0) return res.status(200).json({ success: false });
+
+        res.status(200).json({ success:true, comments});
+    }
+    catch(err){
+        console.error("Error found while getting comments", err);
+        res.status(500).json({ error : err });
     }
  }
