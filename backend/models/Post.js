@@ -6,6 +6,7 @@ const schema = new Schema({
    mediaUrl : String || null,
    timestamp: Date,
    itemType: String,
+   likedBy : [],
    likes: Number,
    comments: Number,
    shares: Number,

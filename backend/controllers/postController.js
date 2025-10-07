@@ -155,3 +155,41 @@ catch(err){
         res.status(500).json({ error : err });
     }
  }
+
+ export const updateLikes = async(req, res)=>{
+    const { id } = req.params;
+    const { action } = req.body;
+    const profile = req.user;
+
+    if(!id) return res.status(400).json({ message : "Post Id missing"});
+
+    if(!action) return res.status(400).json({ message : "Missing fields"});
+
+    try{
+        const post = await Post.findById(id);
+
+        if(!post) return res.status(404).json({ message : "Could not find the post" });
+
+        const isLiked = post.likedBy.find( id => id == profile._id);
+
+        if(isLiked && action == "like") return res.status(400).json({ message : "Already liked the post "});
+
+        if(action == "like"){
+             post.likedBy.push(profile._id);
+             post.likes +=1;
+        }
+        else{
+            const filtered = post.likedBy.filter(id => id == profile._id);
+            post.likedBy = filtered;
+            post.likes = Math.max(0, post.likes -1);
+        }
+
+        await post.save();
+
+        res.status(200).json({ success: true, likeCount : post.likes, isLiked });
+    }
+    catch(err){
+        console.error("Error found while updating likes", err);
+        res.status(500).json({ error : err});
+    }
+ }

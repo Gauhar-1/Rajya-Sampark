@@ -33,9 +33,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCloud } from '@/hooks/use-cloudinary';
 import { Input } from '@/components/ui/input';
-import { timeStamp } from 'console';
 
 
 interface FeedItemCardProps {
@@ -507,16 +505,33 @@ export default function HomePage() {
     }
   };
 
-  const handleLike = (itemId: string, action: 'like' | 'unlike') => {
-    setFeedItems(prevItems =>
-      prevItems.map(item => {
-        if (item._id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
-          const newLikes = action === 'like' ? item.likes + 1 : Math.max(0, item.likes - 1);
-          return { ...item, likes: newLikes };
+  const handleLike = async(itemId: string, action: 'like' | 'unlike') => {
+    const originalFeed = feedItems;
+
+    try{
+      const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/${itemId}/like`, { action } , { 
+        headers:{
+          "Authorization" : `Bearer ${token}`
         }
-        return item;
-      })
-    );
+      });
+
+      if(response.data.success){
+        setFeedItems(prevItems =>
+          prevItems.map(item => {
+            if (item._id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
+              const newLikes = action === 'like' ? item.likes + 1 : Math.max(0, item.likes - 1);
+              return { ...item, likes: newLikes };
+            }
+            return item;
+          })
+        );
+      }
+    }
+    catch(err){
+      setFeedItems(originalFeed);
+      console.log("Error found while posting likes", err);
+    }
+
   };
 
   const handleComment = (itemId: string) => {
