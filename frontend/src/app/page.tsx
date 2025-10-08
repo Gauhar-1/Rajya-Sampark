@@ -73,7 +73,15 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
 
     getComments();
 
-  },[token, isCommentClicked])
+  },[token, isCommentClicked]);
+
+  useEffect(()=>{
+    if(item.likedBy && item.likedBy.length > 0 && user){
+       const isLiked = item.likedBy.find(id => id == user._id);
+       setIsLikedByClient(!!isLiked);
+       console.log("isLiked ",isLiked);
+    }
+  },[item.likedBy , user]);
 
   const handleLikeClick = () => {
     if (isLikedByClient) {

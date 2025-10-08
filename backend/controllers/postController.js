@@ -179,14 +179,17 @@ catch(err){
              post.likes +=1;
         }
         else{
-            const filtered = post.likedBy.filter(id => id == profile._id);
+            console.log("id ", profile._id);
+            console.log("old list ", post.likedBy);
+            const filtered = post.likedBy.filter(id => id != profile._id);
+            console.log("Filtered list ",filtered);
             post.likedBy = filtered;
             post.likes = Math.max(0, post.likes -1);
         }
 
         await post.save();
 
-        res.status(200).json({ success: true, likeCount : post.likes, isLiked });
+        res.status(200).json({ success: true, likeCount : post.likes });
     }
     catch(err){
         console.error("Error found while updating likes", err);

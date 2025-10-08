@@ -39,6 +39,7 @@ interface BaseFeedItem {
   timestamp: string; // ISO string
   creatorDataAiHint?: string;
   likes: number;
+  likedBy: string[],
   comments: number;
   shares: number;
 }
