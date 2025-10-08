@@ -119,6 +119,10 @@ catch(err){
     if(!content || !timestamp) return res.status(404).json({ message: "Field missing"});
 
     try{
+        const post = await Post.findById(postId);
+
+        if(!post) return res.status(404).json({ message : "Couldn't find the post" });
+
         const newComment = new Comment({
             postId,
             profileId : profile._id,
@@ -127,6 +131,9 @@ catch(err){
         });
 
         await newComment.save();
+
+        post.comments +=1;
+        await post.save();
 
         const populatedComment = await newComment.populate('profileId');
 
@@ -179,10 +186,7 @@ catch(err){
              post.likes +=1;
         }
         else{
-            console.log("id ", profile._id);
-            console.log("old list ", post.likedBy);
             const filtered = post.likedBy.filter(id => id != profile._id);
-            console.log("Filtered list ",filtered);
             post.likedBy = filtered;
             post.likes = Math.max(0, post.likes -1);
         }

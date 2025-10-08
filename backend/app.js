@@ -22,7 +22,6 @@ connectDB();
 app.use(json());
 
 
-// ✅ More secure CORS
 const allowedOrigins = [
   'http://localhost:9002',
   'https://rajya-sampark.vercel.app',
@@ -31,7 +30,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow no-origin requests (e.g., Postman) or allowed domains
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }

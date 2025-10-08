@@ -84,6 +84,7 @@ export function CreateVideoForm({ onSubmitSuccess, onOpenChange }: CreateVideoFo
       mediaDataAiHint: 'user uploaded video',
       profileId: user,
       likes : 0,
+      likedBy : [],
       comments : 0,
       shares : 0,
     };
