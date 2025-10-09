@@ -30,23 +30,25 @@ import { CreatePostForm } from '@/components/forms/CreatePostForm';
 import { CreatePollForm } from '@/components/forms/CreatePollForm';
 import { CreateVideoForm } from '@/components/forms/CreateVideoForm';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
+import { toast, useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 interface FeedItemCardProps {
   item: FeedItem;
   onPollVote?: (pollId: string, optionId: string) => void;
   onLike: (itemId: string, action: 'like' | 'unlike') => void;
-  onComment: (itemId: string) => void;
+  onDelete: (itemId: string) => void;
   onShare: (itemId: string) => void;
 }
 
-function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItemCardProps) {
+function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemCardProps) {
   const [isLikedByClient, setIsLikedByClient] = useState(false);
   const [ isCommentClicked, setIsCommentClicked ] = useState<boolean>(false);
+  const [ isOptionsClicked, setIsOptionsClicked ] = useState<boolean>(false);
   const [ comments, setComments ] = useState<Comment[]>([]);
   const [ commentOnPost, setCommentOnPost ] = useState<string | null>(null);
   const { user, token } = useAuth();
@@ -124,6 +126,7 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
     }
 
   }
+
 
   const renderMedia = () => {
     if (item.itemType === 'image_post' && item.mediaUrl) {
@@ -209,7 +212,9 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
 
   return (
     <Card  className="mb-6 shadow-lg rounded-lg overflow-hidden">
-      <CardHeader className="flex flex-row items-center space-x-3 p-4">
+      <CardHeader className="p-4">
+        <div className='flex justify-between'>
+        <div className='flex space-x-3 '>
         <Avatar>
           {item.profileId?.photoURL ? (
             <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} data-ai-hint={item.creatorDataAiHint || "person face"} />
@@ -217,12 +222,40 @@ function FeedItemCard({ item, onPollVote, onLike, onComment, onShare }: FeedItem
           <AvatarFallback>{item.profileId?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div>
-          <CardTitle className="text-base font-semibold flex items-center">
+          <div className="text-base font-semibold flex items-center">
             {item.profileId?.name}
-          </CardTitle>
+          </div>
           <p className="text-xs text-muted-foreground">
             Posted {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
           </p>
+        </div>
+        </div>
+
+       <div className='flex items-center'>
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <svg aria-label="More options" className="x1lliihq x1n2onr6 x5n08af hover:cursor-pointer" fill="black" height="24" role="img" viewBox="0 0 24 24" width="24"><title>More options</title><circle cx="12" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle></svg>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      <DropdownMenuItem
+        onClick={() => console.log("Go to post clicked")}
+      >
+        Go to post
+      </DropdownMenuItem>
+      <DropdownMenuItem 
+        className="text-red-500" 
+        onClick={()=> onDelete(item._id)}
+      >
+        Delete
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => setIsOptionsClicked(false)}
+      >
+        Cancel
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</div>
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0">
@@ -542,19 +575,28 @@ export default function HomePage() {
 
   };
 
-  const handleComment = (itemId: string) => {
-    setFeedItems(prevItems =>
-      prevItems.map(item => {
-         if (item._id === itemId && (item.itemType === 'text_post' || item.itemType === 'image_post' || item.itemType === 'video_post')) {
-          return { ...item, comments: item.comments + 1 };
+  const handleDelete = async(postId : string)=>{
+    try{ 
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/${postId}/delete`,{
+        headers:{
+          "Authorization": `Bearer ${token}`
         }
-        return item;
+      });
+
+      if(response.data.success){
+        setFeedItems((prev)=> {
+          const newFeed = prev.filter( post => post._id != postId);
+
+          return newFeed;
+        })
+        toast({description : "Post Deleted Successfully"});
       }
-      )
-    );
-    toast({ title: "Commented!", description: "Your comment has been (conceptually) added." });
-    // console.log(`Comment action on item: ${itemId}`);
-  };
+    }
+    catch(err){
+      console.error("Error found while deleting post", err);
+      toast({description : "Failed to delete post", variant: "destructive"});
+    }
+  }
 
   const handleShare = (itemId: string) => {
      setFeedItems(prevItems =>
@@ -654,7 +696,7 @@ export default function HomePage() {
             item={item}
             onPollVote={handlePollVote}
             onLike={handleLike}
-            onComment={handleComment}
+            onDelete={handleDelete}
             onShare={handleShare}
         />
       ))}

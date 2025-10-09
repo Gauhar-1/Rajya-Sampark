@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { authMiddleware, authorizeRoles } from "../middleware/authMiddleware.js";
-import { createPoll, createPost, getComments, getFeed, postComment, updateLikes, votePoll } from "../controllers/postController.js";
+import { createPoll, createPost, deletePost, getComments, getFeed, postComment, updateLikes, votePoll } from "../controllers/postController.js";
 const router = Router();
 
 router.get('/', getFeed);
@@ -16,5 +16,7 @@ router.post('/comment', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNT
 router.get('/:id/comment', authMiddleware, getComments);
 
 router.patch('/:id/like', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNTEER', 'CANDIDATE'), updateLikes);
+
+router.delete('/:id/delete', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNTEER', 'CANDIDATE'), deletePost);
 
 export default router;
