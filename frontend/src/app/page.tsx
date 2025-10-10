@@ -609,7 +609,6 @@ export default function HomePage() {
       )
     );
     toast({ title: "Shared!", description: "The post has been (conceptually) shared." });
-    // console.log(`Share action on item: ${itemId}`);
   };
 
 
