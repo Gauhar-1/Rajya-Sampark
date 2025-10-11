@@ -608,7 +608,7 @@ export default function HomePage() {
       }
       )
     );
-    toast({ title: "Shared!", description: "The post has been (conceptually) shared." });
+    // toast({ title: "Shared!", description: "The post has been (conceptually) shared." });
   };
 
 
