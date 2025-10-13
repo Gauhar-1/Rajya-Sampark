@@ -284,7 +284,7 @@ export default function CandidateDashboardPage() {
                                     Total Votes
                                 </CardTitle>
                                 <CardContent className=''>
-                                    <div className='text-xl font-bold'>0</div>
+                                    <div className='text-xl font-bold'>10</div>
                                 </CardContent>
                             </Card>
                             <Card className='text-white border-4 border-black bg-foreground flex flex-col items-center'>
@@ -292,7 +292,7 @@ export default function CandidateDashboardPage() {
                                     Target
                                 </CardTitle>
                                 <CardContent className=''>
-                                    <div className='text-xl font-bold'>0</div>
+                                    <div className='text-xl font-bold'>50</div>
                                 </CardContent>
                             </Card>
                             <Card className='text-white border-4 border-black bg-foreground flex flex-col items-center'>
@@ -300,7 +300,7 @@ export default function CandidateDashboardPage() {
                                     Achieved
                                 </CardTitle>
                                 <CardContent className=''>
-                                    <div className='text-xl font-bold'>0</div>
+                                    <div className='text-xl font-bold'>3</div>
                                 </CardContent>
                             </Card>
                             <Card className='text-white border-4 border-black bg-foreground flex flex-col items-center'>
@@ -308,7 +308,7 @@ export default function CandidateDashboardPage() {
                                     Active Leaders
                                 </CardTitle>
                                 <CardContent className=''>
-                                    <div className='text-xl font-bold'>0</div>
+                                    <div className='text-xl font-bold'>2</div>
                                 </CardContent>
                             </Card>
                             <Card className='text-white border-4 border-black bg-foreground  flex flex-col items-center'>
@@ -316,7 +316,7 @@ export default function CandidateDashboardPage() {
                                     Open Critical Issues
                                 </CardTitle>
                                 <CardContent className=''>
-                                    <div className='text-xl font-bold'>0</div>
+                                    <div className='text-xl font-bold'>5</div>
                                 </CardContent>
                             </Card>
                         </div>
