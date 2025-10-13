@@ -284,7 +284,7 @@ export default function CandidateDashboardPage() {
                                     Total Votes
                                 </CardTitle>
                                 <CardContent className=''>
-                                    <div className='text-xl font-bold'>10</div>
+                                    <div className='text-xl font-bold'>600</div>
                                 </CardContent>
                             </Card>
                             <Card className='text-white border-4 border-black bg-foreground flex flex-col items-center'>
