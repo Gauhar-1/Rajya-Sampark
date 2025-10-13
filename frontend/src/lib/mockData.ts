@@ -4,7 +4,7 @@ import type { Candidate,  ElectionEvent, Campaign, Poll, VolunteerSignup, Monito
 export const mockCandidates: Candidate[] = [
   {
     id: '1',
-    name: 'Alice Wonderland',
+    name: 'Harbajan Singh',
     party: 'Progressive Party',
     region: 'District 5',
     imageUrl: 'https://placehold.co/100x100.png?text=AW',
@@ -15,7 +15,7 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: '2',
-    name: 'Bob The Builder',
+    name: 'Iqbal Kadir',
     party: 'Constructivist Party',
     region: 'Metro Area',
     imageUrl: 'https://placehold.co/100x100.png?text=BB',
