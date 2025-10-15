@@ -2,7 +2,7 @@
 
 Rajyasampark is a unified campaign management platform designed to integrate all critical functions of Indian political campaigns into one powerful and seamless system. It aims to solve operational inefficiencies and transform how candidates engage with voters and manage their teams.
 
-**Live Link:** [Rajya Sampark](https://rajyasampark.vercel.app/)
+**Live Link:** [Rajya Sampark](https://rajya-sampark.vercel.app/)
 
 > **Please note:** The backend is hosted on Render's free tier. If the application has been inactive, the server may need to spin up, which can cause an initial delay of up to **one minute** on your first visit. Please be patient!
 
