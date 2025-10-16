@@ -1,9 +1,9 @@
 import { Schema, model } from "mongoose"
 
 const candidateSchema = new Schema({
-    uid: { type: String, unique: true},
+    uid: { type: String, ref: "Profile", unique: true},
     name: String,
-    party: {type: String, unique: true},
+    party: {type: String},
     region: String,
     imageUrl: String,
     keyPolicies: {type: [String]},

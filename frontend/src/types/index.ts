@@ -17,6 +17,7 @@ export interface Candidate {
   dataAiHint: string;
   _id: string;
   name: string;
+  phone: string;
   party: string;
   region: string;
   imageUrl?: string;

@@ -5,9 +5,9 @@ const userSchema = mongoose.Schema({
     otp: { type: String, required: false },
     status: {     type: String,
         enum: ["active", "blocked"], // Define allowed string values
-        required: true, },
+        default: "active" },
     otpExpires: { type: Date, required: false },
-    resendAvailableAt: { type: Date, required: true },
+    resendAvailableAt: { type: Date, required: false },
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

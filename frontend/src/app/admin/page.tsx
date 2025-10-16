@@ -78,7 +78,7 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
    // Candidate Management State
-   const { uploadFile , dataUrl } = useCloud();
+   const { isLoading, progress, error, uploadFile } = useCloud();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [candidateSearchTerm, setCandidateSearchTerm] = useState('');
   const [candidateRegionFilter, setCandidateRegionFilter] = useState('all');
@@ -215,19 +215,16 @@ export default function AdminPage() {
     setCandidateFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>, fileType: 'image' | 'manifesto') => {
+  const handleFileChange = async(e: ChangeEvent<HTMLInputElement>, fileType: 'image' | 'manifesto') => {
       const file = e.target.files?.[0];
       if (file) {
-          uploadFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
               if (fileType === 'image') {
+                   const dataUrl = await uploadFile(file);
                   setImagePreview(dataUrl);
               } else {
+                const dataUrl = await uploadFile(file);
                   setManifestoPreview(dataUrl);
               }
-          };
-          reader.readAsDataURL(file);
       }
   };
 
@@ -252,8 +249,8 @@ export default function AdminPage() {
   },[token])
 
   const handleSaveCandidate = async () => {
-    const { name, party, region, keyPolicies, profileBio } = candidateFormData;
-    if (!name || !party || !region) {
+    const { name, party, phone, region, keyPolicies, profileBio } = candidateFormData;
+    if (!name || !party || !region || !phone) {
       toast({ title: "Error", description: "Name, Party, and Region are required.", variant: "destructive" });
       return;
     }
@@ -266,6 +263,7 @@ export default function AdminPage() {
     ...editingCandidate,
     name,
     party,
+    phone,
     region,
     keyPolicies: policiesArray,
     profileBio: profileBio || editingCandidate.profileBio,
@@ -290,6 +288,7 @@ export default function AdminPage() {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/candidate/register`, {
         name,
         party,
+        phone,
         region,
         keyPolicies: policiesArray,
         profileBio: profileBio ,
@@ -519,13 +518,13 @@ export default function AdminPage() {
                     <CardDescription>Common administrative tasks.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <Button variant="outline" onClick={() => document.querySelector('button[value="user_management"]')?.click()}>
+                    <Button variant="outline" >
                         <Users className="mr-2 h-4 w-4" /> Manage Users
                     </Button>
-                    <Button variant="outline" onClick={() => document.querySelector('button[value="content_moderation"]')?.click()}>
+                    <Button variant="outline">
                         <MessageSquareWarning className="mr-2 h-4 w-4" /> Moderate Content
                     </Button>
-                     <Button variant="outline" onClick={() => document.querySelector('button[value="election_data"]')?.click()}>
+                     <Button variant="outline">
                         <GanttChartSquare className="mr-2 h-4 w-4" /> Manage Election Data
                     </Button>
                 </CardContent>
@@ -750,6 +749,10 @@ export default function AdminPage() {
                         <Label htmlFor="name" className="text-right">Name</Label>
                         <Input id="name" name="name" value={candidateFormData.name || ''} onChange={handleCandidateFormChange} className="col-span-3" />
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-right">Phone Number</Label>
+                        <Input id="phone" name="phone" value={candidateFormData.phone || ''} onChange={handleCandidateFormChange} className="col-span-3" />
+                    </div>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="party" className="text-right">Party</Label>
@@ -764,6 +767,8 @@ export default function AdminPage() {
                         <Input id="imageFile" name="imageFile" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'image')} className="col-span-3" />
                     </div>
                       {imagePreview && <div className="p-2 border rounded-md"><Image src={imagePreview} alt="Profile preview" width={100} height={100} className="rounded-md" /></div>}
+                      { isLoading && <div>Progress {progress}%</div>}
+                      { error && <div className='text-red-600'>{error}</div>}
                     <div className="space-y-2">
                     <div className="space-y-2">
                         <Label htmlFor="profileBio" className="text-right">Profile Bio</Label>
@@ -773,7 +778,9 @@ export default function AdminPage() {
                         <Label htmlFor="manifestoFile" className="text-right">Manifesto Image</Label>
                         <Input id="manifestoFile" name="manifestoFile" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'manifesto')} className="col-span-3" />
                     </div>
-                    {/* {manifestoPreview && <div className="col-start-2 col-span-3"><Image src={manifestoPreview} alt="Manifesto preview" width={150} height={200} className="rounded-md border" /></div>} */}
+                    {manifestoPreview && <div className="col-start-2 col-span-3"><Image src={manifestoPreview} alt="Manifesto preview" width={150} height={200} className="rounded-md border" /></div>}
+                      { isLoading && <div>Progress {progress}%</div>}
+                      { error && <div className='text-red-600'>{error}</div>}
                     
                     <div className="space-y-2">
                         <Label htmlFor="keyPolicies" className="text-right">Key Policies</Label>
