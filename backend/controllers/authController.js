@@ -7,10 +7,16 @@ import { faker } from "@faker-js/faker";
 dotenv.config();
 
 export const sendOtp =async (req, res, next) => {
-    const { phone }= req.body;
+    const { phone }= req.body.data;
+    const { latitude , longitude } = req.body.locationData;
 
     if (!phone) {
         res.status(400).json({ success: false, message: 'Phone number is required.'});
+        return;
+    }
+
+    if(!latitude || !longitude){
+        res.status(400).json({ success: false, message: 'Location coordinate is required.'});
         return;
     }
 
@@ -34,6 +40,7 @@ export const sendOtp =async (req, res, next) => {
             user.status = "active";
             user.otpExpires = otpExpires;
             user.resendAvailableAt = resendAvailableAt;
+            user.regionId = `${latitude}-${longitude}`
             await user.save();
         } else {
             await User.create({
@@ -41,7 +48,8 @@ export const sendOtp =async (req, res, next) => {
                 otp,
                 status: "active",
                 otpExpires,
-                resendAvailableAt
+                resendAvailableAt,
+                regionId : `${latitude}-${longitude}`
             });
         }
 

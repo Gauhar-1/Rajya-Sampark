@@ -42,9 +42,38 @@ export default function LoginPage() {
     resolver: zodResolver(otpSchema),
   });
 
+  const getCurrentLocation = ()=>{
+    return new Promise((resolve, reject)=>{
+      if(!navigator.geolocation){
+        reject(new Error("Geolocation is not supported by your browser."));
+      } else{
+        navigator.geolocation.getCurrentPosition(
+          (position) =>{
+            resolve({
+              latitude : position.coords.latitude,
+              longitude: position.coords.longitude, 
+            });
+          },
+          ()=>{
+            reject(new Error("Unable to retrieve your location. Login will proceed without it."));
+          }
+        )
+      }
+    })
+  }
+
   const handleSendOtp = async (data: PhoneFormData) => {
     setIsLoading(true);
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/auth/send-otp`, data);
+    let locationData = null;
+
+    try{
+      locationData = await getCurrentLocation();
+      console.log("Location obtained:", locationData);
+    }catch(locationError) {
+      console.log(locationError);
+    }
+
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/auth/send-otp`, {data , locationData});
 
     if(response.data.success){
       toast({
@@ -114,13 +143,13 @@ export default function LoginPage() {
         <InputOTP maxLength={6} {...field}>
                 <InputOTPGroup>
                       <InputOTPSlot index={0} className=' border border-black' />
-                      <InputOTPSlot index={1}  className=' border border-black'/>
+                      <InputOTPSlot index={1}  className=' border-r-0 border-l-0 border-black'/>
                       <InputOTPSlot index={2}  className=' border border-black'/>
                 </InputOTPGroup>
                 <InputOTPSeparator />
                 <InputOTPGroup>
                       <InputOTPSlot index={3}  className=' border border-black'/>
-                      <InputOTPSlot index={4}  className=' border border-black'/>
+                      <InputOTPSlot index={4}  className=' border-r-0 border-l-0 border-black'/>
                       <InputOTPSlot index={5}  className=' border border-black'/>
                 </InputOTPGroup>
               </InputOTP>

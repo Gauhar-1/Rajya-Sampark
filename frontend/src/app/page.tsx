@@ -242,12 +242,12 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
       >
         Go to post
       </DropdownMenuItem>
-      <DropdownMenuItem 
+      { item.profileId?._id == user?._id && <DropdownMenuItem 
         className="text-red-500" 
         onClick={()=> onDelete(item._id)}
       >
         Delete
-      </DropdownMenuItem>
+      </DropdownMenuItem>}
       <DropdownMenuItem
         onClick={() => setIsOptionsClicked(false)}
       >
@@ -272,7 +272,7 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
                   size="icon"
                   className={isLikedByClient ? "text-destructive" : "text-muted-foreground hover:text-destructive"}
                   onClick={handleLikeClick}
-                  aria-label={isLikedByClient ? `Unlike post, current likes ${item.likes}` : `Like post, current likes ${item.likes}`}
+                  aria-label={isLikedByClient ? `Unlike post, current likes ${item.likes}` : `Like post, current likes = ${item.likes}`}
                 >
                   <Heart className="h-8 w-8" fill={isLikedByClient ? "currentColor" : "none"} />
                 </Button>
