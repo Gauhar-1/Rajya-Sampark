@@ -257,3 +257,19 @@ catch(err){
         res.status(400).json({ message: err});
      }
  }
+
+ export const getFeedById = async(req, res)=>{
+    const { id } = req.params;
+
+    try{
+        const post = await Post.findById(id).populate('profileId');
+
+        if(!post) return res.status(404).json({ message: "Couldn't find the post"});
+
+        res.status(200).json({ success: true, post});
+    }
+    catch(err){
+        console.log("Error found while geting feed by id", err);
+        res.status(400).json({ message : err});
+    }
+ }

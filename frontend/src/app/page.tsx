@@ -11,7 +11,6 @@ import {
   Heart, MessageCircle, Share2,
   Edit3, BarChart2, Video as VideoIcon, Search as SearchIcon
 } from 'lucide-react';
-import { initialFeedItems as mockInitialFeedItems } from '@/lib/mockData';
 import type { FeedItem, TextPostFeedItem, ImagePostFeedItem, VideoPostFeedItem, CampaignFeedItem, PollFeedItem, PollOption as FeedPollOption, Campaign, Poll, hasVoted, Comment } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -30,11 +29,11 @@ import { CreatePostForm } from '@/components/forms/CreatePostForm';
 import { CreatePollForm } from '@/components/forms/CreatePollForm';
 import { CreateVideoForm } from '@/components/forms/CreateVideoForm';
 import { Progress } from '@/components/ui/progress';
-import { toast, useToast } from '@/hooks/use-toast';
+import {  useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
-import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem,DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useRouter } from 'next/navigation';
 
 
 interface FeedItemCardProps {
@@ -47,36 +46,14 @@ interface FeedItemCardProps {
 
 function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemCardProps) {
   const [isLikedByClient, setIsLikedByClient] = useState(false);
-  const [ isCommentClicked, setIsCommentClicked ] = useState<boolean>(false);
   const [ isOptionsClicked, setIsOptionsClicked ] = useState<boolean>(false);
   const [ comments, setComments ] = useState<Comment[]>([]);
   const [ commentOnPost, setCommentOnPost ] = useState<string | null>(null);
   const { user, token } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
-  useEffect(()=>{
-    if(!token || !isCommentClicked) return;
-
-    const getComments = async()=>{
-      try{
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/${item._id}/comment`,{
-          headers:{
-            "Authorization": `Bearer ${token}`
-          }
-        });
-
-        if(response.data.success){
-          setComments(response.data.comments);
-        }
-      }
-      catch(err){
-        console.log("Error found while getting comments", err);
-      }
-    }
-
-    getComments();
-
-  },[token, isCommentClicked]);
+  
 
   useEffect(()=>{
     if(item.likedBy && item.likedBy.length > 0 && user){
@@ -93,39 +70,6 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
     }
     setIsLikedByClient(!isLikedByClient);
   };
-
-  const handleComment = async()=>{
-    const comment : Comment = {
-      _id : `pc-${Date.now()}`,
-      postId : item._id,
-      profileId : user,
-      content : commentOnPost,
-      timestamp : new Date().toISOString(),
-    }
-
-    try{
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/comment`, {
-        content : comment.content,
-        timestamp: comment.timestamp,
-        postId : comment.postId
-      } ,{
-        headers:{
-          "Authorization": `Bearer ${token}`
-        }
-      });
-
-      if(response.data.success){
-        setComments((prev)=> [...prev, response.data.populatedComment]);
-      }
-    }
-    catch(err){
-      console.error("Error while posting comment", err);
-    }
-    finally{
-      setCommentOnPost(null);
-    }
-
-  }
 
   const handleIssue = async()=>{
       try{
@@ -254,11 +198,13 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
       <svg aria-label="More options" className="x1lliihq x1n2onr6 x5n08af hover:cursor-pointer" fill="black" height="24" role="img" viewBox="0 0 24 24" width="24"><title>More options</title><circle cx="12" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle></svg>
     </DropdownMenuTrigger>
     <DropdownMenuContent>
+      <Link href={`/post/${item._id}`}>
       <DropdownMenuItem
-        onClick={() => console.log("Go to post clicked")}
+        onClick={() => router.push(`/post/${item._id}`)}
       >
         Go to post
       </DropdownMenuItem>
+      </Link>
       { item.profileId?._id == user?._id && <DropdownMenuItem 
         className="text-red-500" 
         onClick={()=> onDelete(item._id)}
@@ -307,12 +253,11 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() =>{ 
-                  setIsCommentClicked(true);
-                }
-                } aria-label={`Comment on post, current comments ${item.comments}`}>
+                 <Link href={`/post/${item._id}`}>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" aria-label={`Comment on post, current comments ${item.comments}`}>
                   <MessageCircle className="h-5 w-5" />
                 </Button>
+                 </Link>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Comment ({item.comments})</p>
@@ -334,82 +279,6 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
         </CardFooter>
       )}
 
-      <Dialog open={isCommentClicked} onOpenChange={setIsCommentClicked}>
-        <DialogContent className='border-none w-3/4 h-5/6 my-4 max-w-5xl max-h-screen p-0'>
-          <div className='rounded-lg grid grid-cols-2 h-full'>
-            <div className='h-full bg-black w-full flex justify-center overflow-hidden aspect-video'>
-              {item.itemType == "image_post" && item.mediaUrl && (
-                          <img src={item.mediaUrl} alt="" className='h-full bg-black ' />
-              )}
-              {item.itemType == "video_post" && item.mediaUrl && (
-                <div className="flex justify-center items-center rounded-md h-full overflow-hidden bg-white">
-          <video src={item.mediaUrl} controls className="h-full aspect-video" />
-        </div>
-              )}
-              {item.itemType == "text_post" && (
-                <div className='bg-gray-300 w-full border-2 p-3'>
-                  <div className='border-2 p-3 bg-white rounded-lg shadow-lg h-1/2'>{item.content}</div>
-                  </div>
-              )}
-            </div>
-
-            {/* right half */}
-            <div className='flex flex-col h-full rounded-r-lg bg-gray-600'>
-              <div className='flex gap-2 p-2 shadow-lg'>
-                <Avatar className='border-none shadow-lg'>
-          {item.profileId?.photoURL ? (
-            <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} data-ai-hint={item.creatorDataAiHint || "person face"} />
-          ) : null}
-          <AvatarFallback >{item.profileId?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="text-white text-base font-semibold flex items-center text-shadow-lg">
-            {item.profileId?.name}
-          </div>
-          <p className="text-xs text-shadow-lg text-gray-300">
-            Posted {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
-          </p>
-        </div>
-              </div>
-
-               {/* Comment section */}
-              <div className='flex-1 border-b-2 overflow-y-auto'>
-                {comments.map( (item) =>
-                <div className='flex gap-2 p-2'>
-                <Avatar className='border-none shadow-lg h-8 w-8'>
-          {item.profileId?.photoURL ? (
-            <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} />
-          ) : null}
-          <AvatarFallback >{item.profileId?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div className='flex flex-col gap-1'>
-          <div className='flex gap-2 items-start'>
-            <p className='text-xs text-gray-300 font-mono'>
-              <b className='text-white text-sm'>{item.profileId?.name}</b> {item.content}</p>
-          </div>
-          <p className="text-xs font-medium text-gray-300">
-             {(formatDistanceToNow(new Date(item.timestamp))).replace('about', '')}
-          </p>
-        </div>
-              </div>)}
-              </div>
-
-              {/* Footer section */}
-              <div className='flex gap-4 my-4 mx-2'>
-                <Heart color='white'/>
-                <MessageCircle color='white'/>
-                <Share2 color='white'/>
-              </div>
-              <div className='flex mb-1'>
-                <Input placeholder='Comment..' value={commentOnPost || ''} className='text-white bg-gray-600 mx-1' onChange={(e)=>{
-                  setCommentOnPost(e.target.value);
-                }}/>
-                <Button className='bg-gray-600 mx-1 border-2 border-white' onClick={handleComment}>Post</Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }

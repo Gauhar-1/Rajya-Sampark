@@ -6,9 +6,10 @@ import { RightSidebarContent } from './RightSidebarContent';
 
 interface AppLayoutProps {
   children: ReactNode;
+  modal: ReactNode;
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, modal }: AppLayoutProps) {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex flex-col min-h-screen w-screen">
@@ -20,6 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8"> 
                   <div className='flex-1'>
                   {children}
+                  {modal}
                   </div>
                 </main>
                 <RightSidebarContent  />

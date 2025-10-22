@@ -1,9 +1,11 @@
 import { Router } from "express"
 import { authMiddleware, authorizeRoles } from "../middleware/authMiddleware.js";
-import { createPoll, createPost, deletePost, getComments, getFeed, postComment, takePostAsIssue, updateLikes, votePoll } from "../controllers/postController.js";
+import { createPoll, createPost, deletePost, getComments, getFeed, getFeedById, postComment, takePostAsIssue, updateLikes, votePoll } from "../controllers/postController.js";
 const router = Router();
 
 router.get('/', getFeed);
+
+router.get('/:id', getFeedById);
 
 router.post('/', authMiddleware, createPost);
 

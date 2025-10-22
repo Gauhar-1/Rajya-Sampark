@@ -21,32 +21,22 @@ export const metadata: Metadata = {
   description: 'Engage with your local leaders and elections through Rajya Sampark — a platform to track candidates, promises, events, and civic updates in real time.',
 };
 
-// RootLayout cannot be a client component if metadata is exported like this.
-// To manage state here for handleCreatePost/Campaign, we'd need to wrap children in a client component,
-// or lift state to a context. For now, handlers in LeftSidebarNav are placeholders.
 export default function RootLayout({
   children,
+   modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
 
-  // State management for created posts/campaigns at this level is complex
-  // because RootLayout is a Server Component.
-  // The handlers in LeftSidebarNav are simplified for this step.
-  // A proper solution would involve React Context or a state management library.
 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          {/* 
-            If AppLayout or LeftSidebarNav needed to update HomePage or CampaignPage states,
-            we'd need a more robust state management solution (Context API or Zustand/Redux).
-            For now, the onPostCreated/onCampaignCreated in LeftSidebarNav are illustrative
-            and won't update the actual page lists directly from there.
-            The forms themselves will update their respective pages if they are on them.
-          */}
-          <AppLayout>{children}</AppLayout>
+          <AppLayout modal={modal}>
+            {children}
+            </AppLayout>
           <Toaster />
         </AuthProvider>
       </body>
