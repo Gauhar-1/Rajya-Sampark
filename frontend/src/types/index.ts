@@ -43,6 +43,7 @@ interface BaseFeedItem {
   likedBy: string[],
   comments: number;
   shares: number;
+  isIssue?: Boolean;
 }
 
 export interface TextPostFeedItem extends BaseFeedItem {

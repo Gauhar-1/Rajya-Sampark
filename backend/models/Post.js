@@ -10,6 +10,7 @@ const schema = new Schema({
    likes: Number,
    comments: Number,
    shares: Number,
+   isIssue: Boolean,
 });
 
 export default model('Post', schema);

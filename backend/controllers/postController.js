@@ -1,13 +1,17 @@
-import mongoose from "mongoose";
 import Comment from "../models/Comment.js";
+import Issue from "../models/Issue.js";
 import Poll from "../models/Poll.js";
 import Post from "../models/Post.js";
+import Volunteer from "../models/Volunteer.js";
 
  export const createPost = async(req, res)=>{
     const { content, itemType, mediaUrl } = req.body;
     const profile = req.user;
 
-    if(itemType == "image_post" && mediaUrl == '') return res.status(404).json({ message: "Image Url not found"});
+    if((itemType == "image_post" || itemType == "video_post") && mediaUrl == '') return res.status(404).json({ message: "Media Url not found"});
+
+    const isIssueMentionend = content.split(" ").find( c => c == "#issue");
+
 
     try{
         const post = await Post.create({
@@ -19,6 +23,7 @@ import Post from "../models/Post.js";
         likes: 0,
         comments: 0,
         shares: 0,
+        isIssue: !!isIssueMentionend,
     })
 
     const populatedPost = await post.populate('profileId')
@@ -226,4 +231,29 @@ catch(err){
         console.log("Error found while deleting the post", err);
         res.status(500).json({ message : err});
     }
+ }
+
+ export const takePostAsIssue = async(req, res)=>{
+     const { id } = req.body;
+     const profile = req.user;
+
+     try{
+        const post = await Post.findById(id);
+
+        if(!post) return res.status(404).json({ message: "Couldn't find the post"});
+
+        const issue = new Issue({
+            postId: id,
+            takenBy: profile._id,
+        });
+
+        await issue.save();
+
+        res.status(200).json({ message: "Successfull", success: true});
+     }
+
+     catch(err){
+        console.log("Error found while taking the issue of post", err);
+        res.status(400).json({ message: err});
+     }
  }

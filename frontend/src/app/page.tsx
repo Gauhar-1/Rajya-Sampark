@@ -52,6 +52,7 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
   const [ comments, setComments ] = useState<Comment[]>([]);
   const [ commentOnPost, setCommentOnPost ] = useState<string | null>(null);
   const { user, token } = useAuth();
+  const { toast } = useToast();
 
   useEffect(()=>{
     if(!token || !isCommentClicked) return;
@@ -81,7 +82,6 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
     if(item.likedBy && item.likedBy.length > 0 && user){
        const isLiked = item.likedBy.find(id => id == user._id);
        setIsLikedByClient(!!isLiked);
-       console.log("isLiked ",isLiked);
     }
   },[item.likedBy , user]);
 
@@ -126,6 +126,23 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
     }
 
   }
+
+  const handleIssue = async()=>{
+      try{
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue`,{id :item._id},{
+          headers:{
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if(response.data.succes){
+          toast({ description: 'Post took as an issue'});
+        }
+      }
+      catch(err){
+        console.log("Error found while taking an issue")
+      }
+    }
 
 
   const renderMedia = () => {
@@ -248,6 +265,11 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
       >
         Delete
       </DropdownMenuItem>}
+      { item.isIssue &&( user?.role == 'VOLUNTEER' || user?.role == 'CANDIDATE' || user?.role == 'ADMIN')   &&<DropdownMenuItem
+        onClick={() => handleIssue()}
+      >
+        Take the Issue
+      </DropdownMenuItem>}
       <DropdownMenuItem
         onClick={() => setIsOptionsClicked(false)}
       >
@@ -286,7 +308,6 @@ function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemC
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() =>{ 
-                  // onComment(item._id);
                   setIsCommentClicked(true);
                 }
                 } aria-label={`Comment on post, current comments ${item.comments}`}>
