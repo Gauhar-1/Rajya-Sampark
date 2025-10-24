@@ -11,13 +11,12 @@ import { Button } from '@/components/ui/button';
 import { RequiredAuth } from '@/components/auth/RequiredAuth';
 import { mockVolunteerTasks, mockVolunteerPosts, mockVolunteerCampaigns, mockVolunteerGroupChats, mockCampaigns } from '@/lib/mockData';
 import type { VolunteerTask, VolunteerPost, VolunteerCampaign, GroupChat, Campaign, AssignedTask, IssuePost } from '@/types';
-import { ListTodo, Edit, Trash2, Megaphone, Newspaper, MessageSquare, ChevronRight, PlusCircle } from 'lucide-react';
+import { ListTodo, Edit, Trash2, Megaphone, Newspaper, MessageSquare, ChevronRight, PlusCircle, Cross, View } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CreateCampaignForm } from '@/components/forms/CreateCampaignForm';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
-import { time } from 'console';
 
 function getStatusVariant(status: VolunteerTask['status']): 'default' | 'secondary' | 'destructive' | 'outline' {
   switch (status) {
@@ -82,29 +81,7 @@ export default function VolunteerDashboardPage() {
 
   };
   
-   const handleEditPost = (id: string) => {
-     toast({ title: `Edit Post (Simulated)`, description: `This would open an editor for item ${id}.` });
-  }
-
-  const handleDelete = async(id: string) => {
-    if(!token) return;
-
-    try{
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue/${id}`,{
-        headers:{
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if(response.data.success){
-        setIssuePosts(prev => prev.filter(p => p._id != id));
-        toast({ title: 'Issue Post', description: `${id} removed`});
-      }
-    }
-    catch(err){
-      console.log('Found error while deleting issue post', err);
-    }
-  };
+  
 
   const openCampaignDialog = (campaign: Campaign | null) => {
     setEditingCampaign(campaign);
@@ -209,6 +186,47 @@ export default function VolunteerDashboardPage() {
 
   },[token]);
 
+   const handleTakePermission = async(id: string) => {
+     if(!token) return;
+
+     try{
+      const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue/${id}`,{},{
+        headers:{
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if(response.data.success){
+        setIssuePosts(prev => (prev.map(p => p._id == id ? { ...p, status: 'pending'}: p)));
+        toast({ title: `Issue Post`, description: `Permission Request sent Successfully` });
+      }
+     }
+     catch(err){
+      console.error(`Error found`, err);
+      toast({ title: `Issue Post`, description: `Error Found during the process`, variant: 'destructive' });
+     }
+  }
+
+  const handleDelete = async(id: string) => {
+    if(!token) return;
+
+    try{
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue/${id}`,{
+        headers:{
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if(response.data.success){
+        setIssuePosts(prev => prev.filter(p => p._id != id));
+        toast({ title: 'Issue Post', description: `${id} removed`});
+      }
+    }
+    catch(err){
+      console.log('Found error while deleting issue post', err);
+    }
+  };
+
  
 
 
@@ -312,18 +330,27 @@ export default function VolunteerDashboardPage() {
                   <TableBody>
                     {issuePosts?.length > 0 ? issuePosts.map(post => (
                       <TableRow key={post._id}>
-                        <TableCell className="max-w-md truncate">"{post.postId.content}"</TableCell>
+                        <TableCell className="max-w-md truncate">"{post.postId ? post.postId.content : 'Post Deleted'  }"</TableCell>
                         <TableCell>
                           <Badge className='hover:text-white' variant={getStatusVariantForPost('')}>{post.status}</Badge>
                         </TableCell>
                         <TableCell>{new Date(post.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell className="flex gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleEditPost(post._id)}>
-                            <Edit className="h-4 w-4" />
+                          <Link href={`post/${post.postId ? post.postId._id : '' }`}>
+                          <Button variant="ghost" size="icon">
+                            <View  className="h-4 w-4" />
+                          </Button>
+                          </Link>
+                          { post.status == 'idle' && (
+                            <div>
+                            <Button variant="ghost" size="icon" onClick={() => handleTakePermission(post._id)}>
+                            <Cross  className="h-4 w-4" />
                           </Button>
                            <Button variant="ghost" size="icon" onClick={() => handleDelete(post._id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
+                            </div>
+                        )}
                         </TableCell>
                       </TableRow>
                     )) : (

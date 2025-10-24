@@ -303,12 +303,33 @@ export const deleteIssuePost = async(req, res)=>{
     if(!id) return res.status(404).json({ message: 'Issue post id missing'});
 
     try{
-         await Issue.findByIdAndDelete(id);
+        await Issue.findByIdAndDelete(id);
 
         res.status(200).json({ success: true, message: `Issue post deleted successfully` });
     }
     catch(err){
         console.log('Error found while deleting issue post', err);
+        res.status(500).json({ message: err.message});
+    }
+}
+
+export const takePermissionForIssuePost = async(req, res)=>{
+    const { id } = req.params;
+
+    if(!id) return res.status(404).json({ message: 'Issue post id missing'});
+
+    try{
+        const issue = await Issue.findById(id);
+
+        if(!issue) return res.status(400).json({ message: 'Could not find the Post '});
+
+        issue.status = 'pending';
+        await issue.save();
+
+        res.status(200).json({ success: true, message:"Successfully sent the Req"});
+    }
+    catch(err){
+        console.error("Error found while asking the req status");
         res.status(500).json({ message: err.message});
     }
 }

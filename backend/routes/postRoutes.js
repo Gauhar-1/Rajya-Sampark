@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { authMiddleware, authorizeRoles } from "../middleware/authMiddleware.js";
-import { createPoll, createPost, deleteIssuePost, deletePost, getComments, getFeed, getFeedById, getIssuePost, postComment, takePostAsIssue, updateLikes, votePoll } from "../controllers/postController.js";
+import { createPoll, createPost, deleteIssuePost, deletePost, getComments, getFeed, getFeedById, getIssuePost, postComment, takePermissionForIssuePost, takePostAsIssue, updateLikes, votePoll } from "../controllers/postController.js";
 const router = Router();
 
 router.get('/', getFeed);
@@ -18,6 +18,8 @@ router.patch('/:id/vote', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLU
 router.post('/comment', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNTEER', 'CANDIDATE'), postComment);
 
 router.get('/:id/comment', authMiddleware, getComments);
+
+router.patch('/issue/:id', authMiddleware, authorizeRoles('ADMIN', 'VOLUNTEER'), takePermissionForIssuePost);
 
 router.patch('/:id/like', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNTEER', 'CANDIDATE'), updateLikes);
 

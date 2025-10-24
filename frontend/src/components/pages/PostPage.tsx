@@ -123,7 +123,7 @@ export default function PostPage({ postId } : PostPageProps) {
               )}
               {item.itemType == "text_post" && (
                 <div className='bg-gray-300 w-full border-2 p-3'>
-                  <div className='border-2 p-3 bg-white rounded-lg shadow-lg h-1/2'>{item.content}</div>
+                  <div className='border-2 p-3 bg-white rounded-lg shadow-lg max-h-full overflow-y-auto whitespace-pre-wrap'>{item.content}</div>
                   </div>
               )}
             </div>
@@ -133,7 +133,7 @@ export default function PostPage({ postId } : PostPageProps) {
               <div className='flex gap-2 p-2 shadow-lg'>
                 <Avatar className='border-none shadow-lg'>
           {item.profileId?.photoURL ? (
-            <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} data-ai-hint={item.creatorDataAiHint || "person face"} />
+            <AvatarImage className="rounded-3xl" src={item.profileId.photoURL} alt={item.profileId.name} data-ai-hint={item.creatorDataAiHint || "person face"} />
           ) : null}
           <AvatarFallback >{item.profileId?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
@@ -153,7 +153,7 @@ export default function PostPage({ postId } : PostPageProps) {
                 <div className='flex gap-2 p-2'>
                 <Avatar className='border-none shadow-lg h-8 w-8'>
           {item.profileId?.photoURL ? (
-            <AvatarImage src={item.profileId.photoURL} alt={item.profileId.name} />
+            <AvatarImage className="rounded-3xl" src={item.profileId.photoURL} alt={item.profileId.name} />
           ) : null}
           <AvatarFallback >{item.profileId?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>

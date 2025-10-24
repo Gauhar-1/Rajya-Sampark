@@ -17,7 +17,7 @@ import { useCloud } from '@/hooks/use-cloudinary';
 import { useAuth } from '@/contexts/AuthContext';
 
 const createPostSchema = z.object({
-  content: z.string().max(1000, 'Post content is too long.').optional(), // Optional if image is provided
+  content: z.string().max(10000, 'Post content is too long.').optional(), // Optional if image is provided
   imageFile: z.custom<FileList>().optional(), // For file upload
 }).refine(data => data.content || (data.imageFile && data.imageFile.length > 0), {
   message: "Post must have either content or an image.",

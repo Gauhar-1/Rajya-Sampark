@@ -1,14 +1,17 @@
 'use client'
 
 import PostPage from "@/components/pages/PostPage";
-import { DialogContent } from "@/components/ui/dialog";
+import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Dialog } from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 
-export default function PostModal({ params }: { params: {postId: string }}){
+export default function PostModal({ params }: { params: Promise<{ postId: string }>}){
     const router = useRouter();
+
+    const resolvedParams = use(params);
+    const postId = resolvedParams.postId;
 
     const [isMounted, setIsMounted] = useState(false);
     useEffect(()=>{
@@ -25,8 +28,9 @@ export default function PostModal({ params }: { params: {postId: string }}){
 
     return (
         <Dialog open={true} onOpenChange={onDismiss}>
+            <DialogTitle>{''}</DialogTitle>
         <DialogContent className='border-none  my-4 max-w-5xl p-0'>
-        <PostPage postId={params.postId}></PostPage>
+        <PostPage postId={postId}></PostPage>
         </DialogContent>
       </Dialog>
     )
