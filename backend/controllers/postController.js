@@ -273,3 +273,42 @@ catch(err){
         res.status(400).json({ message : err});
     }
  }
+
+export const getIssuePost = async(req, res)=>{
+    const profile = req.user;
+
+    try{
+        const issuePosts = await Issue.find({ takenBy : profile._id }).populate('postId');
+
+        if (!issuePosts || issuePosts.length === 0) {
+            return res.status(200).json({ 
+                success: true, 
+                message: "No issues assigned to this user.", 
+                posts: [] 
+            });
+        }
+
+        res.status(200).json({ success: true, posts : issuePosts});
+    }
+
+    catch(err){
+        console.log("Error found while getting issue Post", err);
+        res.status(400).json({message: "An internal server error occurred while fetching issue posts." });
+    }
+}
+
+export const deleteIssuePost = async(req, res)=>{
+    const { id } = req.params;
+
+    if(!id) return res.status(404).json({ message: 'Issue post id missing'});
+
+    try{
+         await Issue.findByIdAndDelete(id);
+
+        res.status(200).json({ success: true, message: `Issue post deleted successfully` });
+    }
+    catch(err){
+        console.log('Error found while deleting issue post', err);
+        res.status(500).json({ message: err.message});
+    }
+}

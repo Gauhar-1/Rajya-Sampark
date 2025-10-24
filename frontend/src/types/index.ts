@@ -96,6 +96,7 @@ export interface PollFeedItem extends BaseFeedItem {
 
 export type FeedItem = TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem | CampaignFeedItem | PollFeedItem;
 
+export type IssueItem = TextPostFeedItem | ImagePostFeedItem | VideoPostFeedItem;
 
 export interface OldFeedPost {
   dataAiHintPost?: string;
@@ -160,6 +161,14 @@ export interface Poll {
   creatorId: string;
   createdAt: string;
   regionId?: string;
+}
+
+export interface IssuePost {
+  _id: string;
+  postId: IssueItem;
+  status: string;
+  takenBy: User;
+  createdAt: string;
 }
 
 export interface GroupChat {

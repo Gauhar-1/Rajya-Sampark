@@ -47,8 +47,6 @@ interface FeedItemCardProps {
 function FeedItemCard({ item, onPollVote, onLike, onDelete, onShare }: FeedItemCardProps) {
   const [isLikedByClient, setIsLikedByClient] = useState(false);
   const [ isOptionsClicked, setIsOptionsClicked ] = useState<boolean>(false);
-  const [ comments, setComments ] = useState<Comment[]>([]);
-  const [ commentOnPost, setCommentOnPost ] = useState<string | null>(null);
   const { user, token } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -373,7 +371,7 @@ export default function HomePage() {
   };
 
   const handleCreateVideo = async(newVideo: VideoPostFeedItem) => {
-    const { content , itemType, mediaUrl} = newVideo;
+    const { content, itemType, mediaUrl } = newVideo;
     
     try{
       const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post`, {
@@ -387,8 +385,8 @@ export default function HomePage() {
     })
 
     if(response.data.success){
-      const { popluplatedPost } = response.data;
-      addNewFeedItem( popluplatedPost );
+      const { populatedPost } = response.data;
+      addNewFeedItem( populatedPost );
     }
   }
     catch(err){

@@ -1,9 +1,11 @@
 import { Router } from "express"
 import { authMiddleware, authorizeRoles } from "../middleware/authMiddleware.js";
-import { createPoll, createPost, deletePost, getComments, getFeed, getFeedById, postComment, takePostAsIssue, updateLikes, votePoll } from "../controllers/postController.js";
+import { createPoll, createPost, deleteIssuePost, deletePost, getComments, getFeed, getFeedById, getIssuePost, postComment, takePostAsIssue, updateLikes, votePoll } from "../controllers/postController.js";
 const router = Router();
 
 router.get('/', getFeed);
+
+router.get('/issue', authMiddleware, authorizeRoles('ADMIN', 'VOLUNTEER', 'CANDIDATE'), getIssuePost);
 
 router.get('/:id', getFeedById);
 
@@ -18,6 +20,8 @@ router.post('/comment', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNT
 router.get('/:id/comment', authMiddleware, getComments);
 
 router.patch('/:id/like', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNTEER', 'CANDIDATE'), updateLikes);
+
+router.delete('/issue/:id', authMiddleware, authorizeRoles('ADMIN', 'VOLUNTEER', 'CANDIDATE'), deleteIssuePost);
 
 router.delete('/:id/delete', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNTEER', 'CANDIDATE'), deletePost);
 

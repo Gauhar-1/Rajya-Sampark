@@ -10,13 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RequiredAuth } from '@/components/auth/RequiredAuth';
 import { mockVolunteerTasks, mockVolunteerPosts, mockVolunteerCampaigns, mockVolunteerGroupChats, mockCampaigns } from '@/lib/mockData';
-import type { VolunteerTask, VolunteerPost, VolunteerCampaign, GroupChat, Campaign, AssignedTask } from '@/types';
+import type { VolunteerTask, VolunteerPost, VolunteerCampaign, GroupChat, Campaign, AssignedTask, IssuePost } from '@/types';
 import { ListTodo, Edit, Trash2, Megaphone, Newspaper, MessageSquare, ChevronRight, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CreateCampaignForm } from '@/components/forms/CreateCampaignForm';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
+import { time } from 'console';
 
 function getStatusVariant(status: VolunteerTask['status']): 'default' | 'secondary' | 'destructive' | 'outline' {
   switch (status) {
@@ -27,14 +28,25 @@ function getStatusVariant(status: VolunteerTask['status']): 'default' | 'seconda
   }
 }
 
+function getStatusVariantForPost(status : string): 'default' | 'secondary' | 'destructive' | 'outline' {
+  switch(status) {
+    case 'pending' : return 'default';
+    case 'approved' : return 'secondary';
+    case 'rejected' : return 'destructive';
+    case 'assigned' : return 'outline';
+    case 'resolved' : return 'default';
+    default: return 'outline'
+  }
+}
+
 export default function VolunteerDashboardPage() {
   const { toast } = useToast();
   const { token } = useAuth();
   const [tasks, setTasks] = useState<AssignedTask[]>([]);
-  const [posts, setPosts] = useState<VolunteerPost[]>(mockVolunteerPosts);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);
-    const [isCampaignDialogOpen, setIsCampaignDialogOpen] = useState(false);
+  const [issuePosts, setIssuePosts] = useState<IssuePost[]>([]);
+  const [isCampaignDialogOpen, setIsCampaignDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
 
   // tasks
@@ -74,13 +86,24 @@ export default function VolunteerDashboardPage() {
      toast({ title: `Edit Post (Simulated)`, description: `This would open an editor for item ${id}.` });
   }
 
-  const handleDelete = (type: 'Post' | 'Campaign', id: string) => {
-    if (type === 'Post') {
-      setPosts(prev => prev.filter(p => p.id !== id));
-    } else if (type === 'Campaign') {
-      setCampaigns(prev => prev.filter(c => c._id !== id));
+  const handleDelete = async(id: string) => {
+    if(!token) return;
+
+    try{
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue/${id}`,{
+        headers:{
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if(response.data.success){
+        setIssuePosts(prev => prev.filter(p => p._id != id));
+        toast({ title: 'Issue Post', description: `${id} removed`});
+      }
     }
-    toast({ title: `${type} Deleted`, description: `The item has been removed from your list.` });
+    catch(err){
+      console.log('Found error while deleting issue post', err);
+    }
   };
 
   const openCampaignDialog = (campaign: Campaign | null) => {
@@ -159,7 +182,34 @@ export default function VolunteerDashboardPage() {
     }
 
     fetchGroups();
-  },[token])
+  },[token]);
+
+  // Issue Post
+  useEffect(()=>{
+    if(!token) return;
+    const fetchIssuePosts = async()=>{
+      try{
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue`,{
+          headers:{
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if(response.data.success){
+          setIssuePosts(response.data.posts);
+        }
+
+      }
+      catch(err){
+        console.log("Error found while fetching issue post");
+      }
+    }
+
+    fetchIssuePosts();
+
+  },[token]);
+
+ 
 
 
   return (
@@ -179,7 +229,7 @@ export default function VolunteerDashboardPage() {
               <ListTodo className="mr-2 h-4 w-4" /> My Tasks ({tasks.length})
             </TabsTrigger>
             <TabsTrigger value="posts">
-              <Newspaper className="mr-2 h-4 w-4" /> My Posts ({posts.length})
+              <Newspaper className="mr-2 h-4 w-4" /> My Posts ({issuePosts?.length})
             </TabsTrigger>
             <TabsTrigger value="campaigns">
               <Megaphone className="mr-2 h-4 w-4" /> My Campaigns ({campaigns.length})
@@ -215,6 +265,7 @@ export default function VolunteerDashboardPage() {
                         </TableCell>
                         <TableCell className="flex gap-2">
                            <Button 
+                               className='text-violet-500'
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => handleStatusChange(task._id, 'In Progress')} 
@@ -222,6 +273,7 @@ export default function VolunteerDashboardPage() {
                                 Start
                             </Button>
                            <Button 
+                                className='text-violet-500'
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => handleStatusChange(task._id, 'Completed')} 
@@ -244,35 +296,41 @@ export default function VolunteerDashboardPage() {
           <TabsContent value="posts" className="mt-4">
             <Card className="shadow-md">
               <CardHeader>
-                <CardTitle className='text-primary'>Your Posts</CardTitle>
-                <CardDescription>Posts you have created on the main feed.</CardDescription>
+                <CardTitle className='text-primary'>Issue Posts</CardTitle>
+                <CardDescription>Issue you have taken from the main feed.</CardDescription>
               </CardHeader>
               <CardContent className='bg-primary m-2 p-2 rounded-lg border-4 border-black'> 
                 <Table className='bg-white'>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Content Snippet</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Created On</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {posts.length > 0 ? posts.map(post => (
-                      <TableRow key={post.id}>
-                        <TableCell className="max-w-md truncate">"{post.contentSnippet}"</TableCell>
+                    {issuePosts?.length > 0 ? issuePosts.map(post => (
+                      <TableRow key={post._id}>
+                        <TableCell className="max-w-md truncate">"{post.postId.content}"</TableCell>
+                        <TableCell>
+                          <Badge className='hover:text-white' variant={getStatusVariantForPost('')}>{post.status}</Badge>
+                        </TableCell>
                         <TableCell>{new Date(post.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell className="flex gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleEditPost(post.id)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleEditPost(post._id)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                           <Button variant="ghost" size="icon" onClick={() => handleDelete('Post', post.id)}>
+                           <Button variant="ghost" size="icon" onClick={() => handleDelete(post._id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </TableCell>
                       </TableRow>
                     )) : (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground">You haven't created any posts.</TableCell>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                          <div className='bg-primary text-white rounded-lg p-2'>You haven't taken any posts.</div>
+                          </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
@@ -312,7 +370,7 @@ export default function VolunteerDashboardPage() {
                            <Button variant="ghost" size="icon" onClick={() => openCampaignDialog(campaign)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                           <Button variant="ghost" size="icon" onClick={() => handleDelete('Campaign', campaign._id)}>
+                           <Button variant="ghost" size="icon" >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </TableCell>
