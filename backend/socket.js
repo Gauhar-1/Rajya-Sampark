@@ -4,12 +4,21 @@ import { Server } from "socket.io";
 import jwt from 'jsonwebtoken'
 import Message from "./models/Message.js";
 import Group from "./models/Group.js";
-import { Schema } from "mongoose";
 
 const httpServer = createServer(app);
+
+const allowedOrigins = [
+  'http://localhost:9002',
+  'https://rajya-sampark.vercel.app',
+];
 const io = new Server(httpServer, {
     cors:{
-        origin: 'http://localhost:9002',
+         origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
         methods: ["GET", "POST"]
     }
 });
