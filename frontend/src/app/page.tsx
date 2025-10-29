@@ -34,6 +34,7 @@ import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem,DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
+import { LoadingPage } from '@/components/pages/LoadingPage';
 
 
 interface FeedItemCardProps {
@@ -287,11 +288,14 @@ export default function HomePage() {
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [isPollDialogOpen, setIsPollDialogOpen] = useState(false);
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+  const [loading, setLoading ] = useState<Boolean>(false);
   const { toast } = useToast();
   const { token, user } = useAuth();
   
 
   useEffect(()=>{
+    setLoading(true);
+    if(token) return;
     const getFeed = async()=>{
       try{
           const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post`);
@@ -304,6 +308,9 @@ export default function HomePage() {
       }
       catch(err){
        console.log("Found an Error while fetching err ", err);
+      }
+      finally{
+        setLoading(false);
       }
     }
     getFeed();
@@ -499,6 +506,7 @@ export default function HomePage() {
     // toast({ title: "Shared!", description: "The post has been (conceptually) shared." });
   };
 
+  
 
   return (
     <div className="w-[780px] mx-auto">
@@ -577,7 +585,7 @@ export default function HomePage() {
             </Button>
         </Card>
       )}
-      {feedItems.map((item) => (
+      { feedItems ? feedItems.map((item) => (
         <FeedItemCard
             key={item._id}
             item={item}
@@ -586,7 +594,7 @@ export default function HomePage() {
             onDelete={handleDelete}
             onShare={handleShare}
         />
-      ))}
+      )) : <LoadingPage />}
     </div>
   );
 }

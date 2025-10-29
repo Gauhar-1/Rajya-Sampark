@@ -10,6 +10,7 @@ import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 import { Heart, MessageCircle, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { LoadingPage } from "./LoadingPage";
 
 interface PostPageProps {
     postId: string;
@@ -20,9 +21,11 @@ export default function PostPage({ postId } : PostPageProps) {
     const [ comments, setComments ] = useState<Comment[]>([]);
     const [ commentOnPost, setCommentOnPost ] = useState<string | null>(null);
     const { user, token } = useAuth();
+    const [ loading, setLoading ] = useState<Boolean>(false);
 
       useEffect(() => {
     if (!token || !postId) return;
+    setLoading(true);
 
     const getPost = async () => {
       try {
@@ -40,6 +43,9 @@ export default function PostPage({ postId } : PostPageProps) {
         }
       } catch (err) {
         console.log("Error found while getting post", err);
+      }
+      finally{
+        setLoading(false);
       }
     };
 
@@ -103,6 +109,10 @@ export default function PostPage({ postId } : PostPageProps) {
       setCommentOnPost(null);
     }
 
+  }
+
+  if(loading){
+    return <LoadingPage />
   }
 
   if(!item) return <div className="h-screen flex justify-center items-center text-lg font-bold">
