@@ -243,9 +243,10 @@ export default function CandidateDashboardPage() {
   return (
     <RequiredAuth allowedRoles={['CANDIDATE', 'ADMIN']} redirectTo='/'>
       <div className="p-2 bg-primary rounded-lg">
-        <Tabs defaultValue="dashboard" className="w-full ">
-            <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="dashboard" className="w-full">
+            <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="dashboard" className=''>
+                  <LayoutDashboard className="mr-2 h-4 w-4"/>
                    Dashboard
                 </TabsTrigger>
                 <TabsTrigger value="requests">
@@ -255,6 +256,10 @@ export default function CandidateDashboardPage() {
                 <TabsTrigger value="roster">
                     <Users className="mr-2 h-4 w-4" />
                     Active Roster
+                </TabsTrigger>
+                <TabsTrigger value="issues">
+                    <Users className="mr-2 h-4 w-4" />
+                    Issues Requests
                 </TabsTrigger>
                 <TabsTrigger value="tasks">
                     <ListTodo className="mr-2 h-4 w-4" />
