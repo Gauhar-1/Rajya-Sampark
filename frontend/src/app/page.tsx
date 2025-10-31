@@ -307,7 +307,7 @@ export default function HomePage() {
           }
       }
       catch(err){
-       console.log("Found an Error while fetching err ", err);
+       console.log("Found an Error while fetching err.", err);
       }
       finally{
         setLoading(false);
