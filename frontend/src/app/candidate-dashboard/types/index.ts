@@ -1,0 +1,1 @@
+export interface NewTask{ title: string; volunteerId: string };
