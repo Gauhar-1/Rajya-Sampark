@@ -278,3 +278,13 @@ export interface Report {
   dateSubmitted: string,
   isAnonymous: boolean
 }
+
+export type issueStatus = 'idle' | 'pending' | 'approved' | 'rejected' | 'assigned' | 'resolved' ;
+
+export interface Issue{
+  _id : string;
+  postId : FeedItem;
+  status : issueStatus;
+  takenBy : User;
+  createdAt : string;
+}

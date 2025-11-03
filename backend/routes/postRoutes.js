@@ -1,11 +1,13 @@
 import { Router } from "express"
 import { authMiddleware, authorizeRoles } from "../middleware/authMiddleware.js";
-import { createPoll, createPost, deleteIssuePost, deletePost, getComments, getFeed, getFeedById, getIssuePost, postComment, takePermissionForIssuePost, takePostAsIssue, updateLikes, votePoll } from "../controllers/postController.js";
+import { createPoll, createPost, deleteIssuePost, deletePost, getComments, getFeed, getFeedById, getIssuePost, getIssuesForCandidate, postComment, takePermissionForIssuePost, takePostAsIssue, updateLikes, votePoll } from "../controllers/postController.js";
 const router = Router();
 
 router.get('/', getFeed);
 
 router.get('/issue', authMiddleware, authorizeRoles('ADMIN', 'VOLUNTEER', 'CANDIDATE'), getIssuePost);
+
+router.get('/issue/candidate', authMiddleware, authorizeRoles('ADMIN' , 'CANDIDATE'), getIssuesForCandidate)
 
 router.get('/:id', getFeedById);
 
@@ -28,5 +30,6 @@ router.delete('/issue/:id', authMiddleware, authorizeRoles('ADMIN', 'VOLUNTEER',
 router.delete('/:id/delete', authMiddleware, authorizeRoles('VOTER', 'ADMIN', 'VOLUNTEER', 'CANDIDATE'), deletePost);
 
 router.post('/issue', authMiddleware, authorizeRoles('ADMIN', 'VOLUNTEER', 'CANDIDATE'), takePostAsIssue);
+
 
 export default router;

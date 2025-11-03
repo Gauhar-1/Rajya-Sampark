@@ -1,3 +1,4 @@
+import Candidate from "../models/Candidate.js";
 import Comment from "../models/Comment.js";
 import Issue from "../models/Issue.js";
 import Poll from "../models/Poll.js";
@@ -331,5 +332,26 @@ export const takePermissionForIssuePost = async(req, res)=>{
     catch(err){
         console.error("Error found while asking the req status");
         res.status(500).json({ message: err.message});
+    }
+}
+
+export const getIssuesForCandidate =async(req, res) =>{
+    const profile = req.user;
+
+    try{
+        const candidate = await Candidate.findOne({ uid : profile.uid });
+
+        if(!candidate) return res.status(404).json({ message : "Couldn't find the candidate "});
+
+        const issues = await Issue.find({}).populate('takenBy', 'phone').sort({ createdAt: -1 });
+
+        if(issues.length == 0) return res.status(200).json({ success: true , issues: []});
+
+        const candidateIssues = issues.filter( i => i.takenBy.candidateId != candidate._id);
+
+        return res.status(200).json({ success: true , issues: candidateIssues});
+    }
+    catch(err){
+        console.error("Error found while getting issues for candidate", err);
     }
 }
