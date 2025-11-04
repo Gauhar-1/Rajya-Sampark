@@ -7,16 +7,13 @@ import { CookingPot, ThumbsUp, Users, Handshake, Eye } from "lucide-react";
 import { useIssue } from '../hooks/use-issue';
 import { Issue } from '@/types';
 import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
 
 
 
 export const Issues = () => { // Removed 'export' keyword here
     const { issues, loading : IssueLoading, handleStatusChange } = useIssue();
-    console.log("Issues", issues);
 
-    const handleView = (issueId: string) => {
-        console.log(`Viewing details for issue: ${issueId}`);
-    };
 
 
     const handleCreateGroupChat = (issueId : string) => {
@@ -75,10 +72,10 @@ export const Issues = () => { // Removed 'export' keyword here
                             <TableRow>
                                 {/* Reverted Headers as requested */}
                                 <TableHead className='flex justify-center items-center'>Issue No.</TableHead>
-                                <TableHead className="md:table-cell flex justify-center items-center">Taken By</TableHead>
-                                <TableHead className='flex justify-center items-center'>Time</TableHead>
+                                <TableHead className="md:table-cell">Taken By</TableHead>
+                                <TableHead className=''>Time</TableHead>
                                 <TableHead className="flex justify-center items-center lg:table-cell">Post</TableHead>
-                                <TableHead className='flex justify-center items-center'>Action</TableHead>
+                                <TableHead className=''>Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -91,28 +88,27 @@ export const Issues = () => { // Removed 'export' keyword here
                                 issues.map((issue , index) => (
                                     <TableRow key={index}>
                                         
-                                        <TableCell className="font-medium">
+                                        <TableCell className="font-medium flex justify-center items-center">
                                             **#{index + 1}** 
                                         </TableCell>
 
-                                        <TableCell className="hidden md:table-cell ">
+                                        <TableCell className="md:table-cell flex justify-center items-center ">
                                             <Badge variant="outline" className='hover:bg-white'>{issue.takenBy.phone}</Badge>
                                         </TableCell>
 
-                                        <TableCell>{(issue.createdAt)}</TableCell>
+                                        <TableCell>{formatDistanceToNow(new Date(issue.createdAt), { addSuffix: true })}</TableCell>
 
-                                        <TableCell className="lg:table-cell">
+                                        <TableCell className="">
                                             <Link href={`/post/${issue.postId}`}>
                                             <Button 
                                                 className='text-primary border-2 border-primary hover:text-white hover:bg-primary bg-white rounded-lg p-2 h-auto'
-                                                onClick={() => handleView(issue._id)}
                                             >
                                                 <Eye className='h-4 w-4 mr-1'/> View
                                             </Button>
                                             </Link>
                                         </TableCell>
 
-                                        <TableCell>
+                                        <TableCell className=''>
                                             {renderActionButtons(issue)}
                                         </TableCell>
                                     </TableRow>

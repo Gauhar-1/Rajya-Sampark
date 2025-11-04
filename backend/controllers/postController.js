@@ -355,3 +355,24 @@ export const getIssuesForCandidate =async(req, res) =>{
         console.error("Error found while getting issues for candidate", err);
     }
 }
+
+export const givePermissionForIssuePost = async(req, res)=>{
+    const { id } = req.params;
+    const { status }= req.body;
+
+    if(!id) return res.status(404).json({ message :  "Didn't get the issue id"});
+
+    try{
+        const issue = await Issue.findById(id);
+
+        if(!issue) return res.status(404).json({ message : "Couldn't find the id"});
+
+        issue.status = status;
+        await issue.save();
+
+        res.status(200).json({ success: true, message: `Successfully changed the status to ${status}`});
+    }
+    catch(err){
+        res.status(500).json({ error : err});
+    }
+}
