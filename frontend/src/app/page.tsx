@@ -35,6 +35,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem,DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 import { LoadingPage } from '@/components/pages/LoadingPage';
+import Loader from '@/components/Loaders/primary';
 
 
 interface FeedItemCardProps {
@@ -505,7 +506,11 @@ export default function HomePage() {
     // toast({ title: "Shared!", description: "The post has been (conceptually) shared." });
   };
 
-  
+  if(loading){
+    return (
+      <Loader />
+    )
+  }
 
   return (
     <div className="w-[780px] mx-auto">
