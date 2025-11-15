@@ -59,7 +59,7 @@ export const useChat = ()=>{
     }
     catch(err){
         setCreatedGroupChats(originalChat);
-        console.log("Error found while creating group." ,err);
+        console.log("Error found while creating group" ,err);
     }
     finally{
         setIsCreateGroupChatOpen(false); 
