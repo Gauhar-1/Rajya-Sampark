@@ -14,7 +14,7 @@ interface AuthContextType {
   role: Role;
   token: String | null
   isLoading: boolean;
-  loginWithOtp: (phone: string, otp: string) =>void; // Updated for simulated login
+  loginWithOtp: (phone: string, otp: string) => void; // Updated for simulated login
   logout: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
   panel: boolean;
@@ -26,24 +26,24 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [appUser, setAppUser] = useState<User | null>(null);
   const [role, setRole] = useState<Role>('ANONYMOUS');
-   const [isLoading, setIsLoading] = useState(false); // Start as true until we check session
-   const [panel, setPanel] = useState(false); 
-   const [userId, setUserId] = useState<string | null>(null);
-   const [ token, setToken ] = useState<string | null>(null);
-   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false); // Start as true until we check session
+  const [panel, setPanel] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const { toast } = useToast();
   const router = useRouter();
 
 
 
-   const updateUser = useCallback(async (data: Partial<User>) => {
+  const updateUser = useCallback(async (data: Partial<User>) => {
     if (!appUser) {
       throw new Error("No user is currently logged in.");
     }
 
     const updatedUser = { ...appUser, ...data };
-    
+
     setAppUser(updatedUser);
-    if(data.role) setRole(data.role);
+    if (data.role) setRole(data.role);
 
     try {
       localStorage.setItem('civic-connect-user', JSON.stringify(updatedUser));
@@ -57,53 +57,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithOtp = async (phone: string, otp: string) => {
 
     setIsLoading(true);
-    
-     const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/auth/verify-otp`,{
+
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/auth/verify-otp`, {
       otp,
       phone
-     })
+    })
 
-     if(response.data.success){
-      const { token , profile} = response.data;
-       setAppUser(profile);
-       login(token);
+    if (response.data.success) {
+      const { token, profile } = response.data.data;
+      setAppUser(profile);
+      login(token);
 
-       toast({
-          title: 'Login Successful!',
-          description: 'Welcome back!',
-        });
-        router.push('/');
+      toast({
+        title: 'Login Successful!',
+        description: 'Welcome back!',
+      });
+      router.push('/');
 
-        try {
+      try {
         localStorage.setItem('token', token);
       } catch (error) {
         console.error("Failed to save user to localStorage", error);
       }
-     }
-      else {
-         toast({
-          title: 'Login Failed',
-          description: 'The OTP you entered is incorrect. Please try again.',
-          variant: 'destructive',
-        });
-      }
-      
-      setIsLoading(false);
+    }
+    else {
+      toast({
+        title: 'Login Failed',
+        description: 'The OTP you entered is incorrect. Please try again.',
+        variant: 'destructive',
+      });
     }
 
-     const login = (token: string) => {
-      setIsLoading(true);
+    setIsLoading(false);
+  }
+
+  const login = (token: string) => {
+    setIsLoading(true);
     try {
-       const decoded = jwtDecode<{ profile: User }>(token);
-        const { profile } = decoded;
-        setUserId(profile.uid || null);
-        setRole(profile.role || null);
-        setAppUser(profile);
-        setToken(token);
+      const decoded = jwtDecode<{ profile: User }>(token);
+      const { profile } = decoded;
+      setUserId(profile.uid || null);
+      setRole(profile.role || null);
+      setAppUser(profile);
+      setToken(token);
     } catch (err) {
       console.error("Invalid token", err);
     }
-    finally{
+    finally {
       setIsLoading(false);
     }
   };
@@ -113,14 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setAppUser(null);
     setRole('ANONYMOUS');
-    
+
     // Clear mock session from localStorage
     try {
       localStorage.removeItem('civic-connect-user');
     } catch (error) {
-       console.error("Failed to remove user from localStorage", error);
+      console.error("Failed to remove user from localStorage", error);
     }
-    finally{
+    finally {
       setIsLoading(false);
       router.push('/');
     }
@@ -136,23 +136,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout(); // Clear invalid token
       }
     }
-    else{
+    else {
       console.log("Token not found");
     }
   }, []);
-  
+
   return (
-    <AuthContext.Provider value={{ 
+    <AuthContext.Provider value={{
       user: appUser,
       role,
       isLoading,
       loginWithOtp,
       logout,
       updateUser,
-      token, 
+      token,
       panel,
       setPanel
-       }}>
+    }}>
       {children}
     </AuthContext.Provider>
   );

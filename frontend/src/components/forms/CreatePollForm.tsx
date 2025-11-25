@@ -59,7 +59,7 @@ export function CreatePollForm({ onSubmitSuccess, onOpenChange }: CreatePollForm
     // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay if needed
 
     onSubmitSuccess(newPollData); // Pass data to parent
-    
+
     toast({
       title: 'Poll Drafted!',
       description: 'Your poll has been drafted and added to the feed.', // Updated message
@@ -96,10 +96,10 @@ export function CreatePollForm({ onSubmitSuccess, onOpenChange }: CreatePollForm
             )}
           </div>
         ))}
-          {errors.options?.root && <p className="text-sm text-destructive mt-1">{errors.options.root.message}</p>}
-          {errors.options?.map((optionError, index) =>
-            optionError.text && <p key={index} className="text-sm text-destructive mt-1">Option {index + 1}: {optionError.text.message}</p>
-          )}
+        {errors.options?.root && <p className="text-sm text-destructive mt-1">{errors.options.root.message}</p>}
+        {Array.isArray(errors.options) && errors.options.map((optionError, index) =>
+          optionError?.text && <p key={index} className="text-sm text-destructive mt-1">Option {index + 1}: {optionError.text.message}</p>
+        )}
 
         {fields.length < 10 && (
           <Button

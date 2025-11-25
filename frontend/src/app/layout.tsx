@@ -5,25 +5,33 @@ import './globals.css';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
+import QueryProvider from '@/providers/QueryProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  display: 'swap',
 });
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: 'Rajya Sampark',
   description: 'Engage with your local leaders and elections through Rajya Sampark — a platform to track candidates, promises, events, and civic updates in real time.',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 };
 
 export default function RootLayout({
   children,
-   modal,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
   modal: React.ReactNode;
@@ -34,10 +42,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          <AppLayout modal={modal}>
-            {children}
+          <QueryProvider>
+            <AppLayout modal={modal}>
+              {children}
             </AppLayout>
-          <Toaster />
+            <Toaster />
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

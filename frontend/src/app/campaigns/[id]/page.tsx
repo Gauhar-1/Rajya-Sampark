@@ -17,25 +17,25 @@ import axios from 'axios';
 export default function CampaignProfilePage() {
   const params = useParams();
   const campaignId = typeof params.id === 'string' ? params.id : '';
-  const [ campaign, setCampaign ] =useState<Campaign>();
+  const [campaign, setCampaign] = useState<Campaign>();
   const { token } = useAuth();
 
-  useEffect(()=>{
-    if(!token) return;
+  useEffect(() => {
+    if (!token) return;
 
-    const getCampaign = async()=>{
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign/${campaignId}`,{
-          headers:{
-            "Authorization": `Bearer ${token}`
-          }
-        });
-
-        if(response.data.success){
-          setCampaign(response.data.campaign);
+    const getCampaign = async () => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign/${campaignId}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
         }
+      });
+
+      if (response.data.success) {
+        setCampaign(response.data.data?.campaign || response.data.campaign);
+      }
     }
     getCampaign();
-  },[token, campaignId]);
+  }, [token, campaignId]);
 
   if (!campaign) {
     return (
@@ -103,7 +103,7 @@ export default function CampaignProfilePage() {
               {campaign.description || 'No detailed description available for this campaign.'}
             </p>
           </section>
-          
+
           {/* Placeholder for more sections like 'Recent Updates', 'Events', 'Get Involved' */}
           {/* 
           <section>

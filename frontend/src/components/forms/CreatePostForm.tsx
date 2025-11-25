@@ -32,7 +32,7 @@ interface CreatePostFormProps {
 }
 
 export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostFormProps) {
-  const [ imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { isLoading, progress, error, uploadFile } = useCloud();
   const { user } = useAuth();
   const form = useForm<CreatePostFormData>({
@@ -47,18 +47,18 @@ export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostForm
   const imageFileWatch = watch('imageFile');
 
   React.useEffect(() => {
-    const uploadImage = async()=>{
+    const uploadImage = async () => {
       if (imageFileWatch && imageFileWatch.length > 0) {
         const file = imageFileWatch[0];
         if (file) {
-            const uploadedUrl = await uploadFile(file);
-  
-        if(!uploadedUrl){
-          console.error("upload failed, post not created.");
-          return;
-        }
-  
-        setImagePreview(uploadedUrl);
+          const uploadedUrl = await uploadFile(file);
+
+          if (!uploadedUrl) {
+            console.error("upload failed, post not created.");
+            return;
+          }
+
+          setImagePreview(uploadedUrl);
         }
       } else {
         setImagePreview(null);
@@ -71,13 +71,14 @@ export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostForm
     const commonData = {
       _id: `post-${Date.now()}`,
       profileId: user,
-      likes : 0,
-      comments : 0,
+      likes: 0,
+      comments: 0,
       shares: 0,
       timestamp: new Date().toISOString(),
       creatorName: 'Current User', // Placeholder
       creatorImageUrl: 'https://placehold.co/40x40.png?text=CU',
       creatorDataAiHint: 'person face',
+      likedBy: [],
     };
 
     if (data.imageFile && data.imageFile.length > 0) {
@@ -86,7 +87,7 @@ export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostForm
         ...commonData,
         itemType: 'image_post',
         content: data.content || '',
-        mediaUrl: imagePreview || '', 
+        mediaUrl: imagePreview || '',
         mediaDataAiHint: 'user uploaded image',
       };
       onSubmitSuccess(newImagePost);
@@ -137,7 +138,7 @@ export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostForm
         </div>
       )}
       {isLoading && <div>Uploading: {progress}%</div>}
-      { error && <div style={{ color: 'red' }}>{error}</div>}
+      {error && <div style={{ color: 'red' }}>{error}</div>}
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
         {isSubmitting ? (

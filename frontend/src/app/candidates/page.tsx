@@ -56,26 +56,26 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
 export default function CandidateDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [regionFilter, setRegionFilter] = useState('all');
-  const [ candidates, setCandidates ] = useState<Candidate[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const { token } = useAuth();
 
-  useEffect(()=>{
-    if(!token){
+  useEffect(() => {
+    if (!token) {
       return;
     }
-    const getCandidates = async()=>{
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/candidate`,{
-        headers:{
+    const getCandidates = async () => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/candidate`, {
+        headers: {
           "Authorization": `Bearer ${token}`
         }
       });
 
-      if(response.data.success){
-        setCandidates(response.data.candidates);
+      if (response.data.success) {
+        setCandidates(response.data.data?.candidates || response.data.candidates);
       }
     };
     getCandidates();
-  },[token]);
+  }, [token]);
 
 
   const regions = useMemo(() => ['all', ...new Set(candidates.map(c => c.region))], [candidates]);
@@ -83,7 +83,7 @@ export default function CandidateDirectoryPage() {
   const filteredCandidates = useMemo(() => {
     return candidates.filter(candidate => {
       const matchesSearch = candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            candidate.party.toLowerCase().includes(searchTerm.toLowerCase());
+        candidate.party.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRegion = regionFilter === 'all' || candidate.region === regionFilter;
       return matchesSearch && matchesRegion;
     });
@@ -125,7 +125,7 @@ export default function CandidateDirectoryPage() {
         </Select>
       </div>
 
-      { filteredCandidates.length > 0 ? (
+      {filteredCandidates.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCandidates.map((candidate) => (
             <CandidateCard key={candidate._id} candidate={candidate} />

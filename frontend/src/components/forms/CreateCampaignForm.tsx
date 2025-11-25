@@ -51,15 +51,15 @@ export function CreateCampaignForm({ onSubmitSuccess, onOpenChange, initialData 
 
   React.useEffect(() => {
     if (initialData) {
-        setValue('name', initialData.name);
-        setValue('party', initialData.party || '');
-        setValue('description', initialData.description);
-        setValue('location', initialData.location);
-        setValue('category', initialData.category);
-        setImagePreview(initialData.imageUrl || null);
+      setValue('name', initialData.name);
+      setValue('party', initialData.party || '');
+      setValue('description', initialData.description);
+      setValue('location', initialData.location);
+      setValue('category', initialData.category);
+      setImagePreview(initialData.imageUrl || null);
     } else {
-        reset(); // Clear form if no initial data
-        setImagePreview(null);
+      reset(); // Clear form if no initial data
+      setImagePreview(null);
     }
   }, [initialData, setValue, reset]);
 
@@ -80,10 +80,10 @@ export function CreateCampaignForm({ onSubmitSuccess, onOpenChange, initialData 
 
   const processSubmit: SubmitHandler<CreateCampaignFormData> = async (data) => {
 
-    const campaignId = initialData ? initialData.id : `camp-${Date.now()}`;
+    const campaignId = initialData ? initialData._id : `camp-${Date.now()}`;
 
     const newCampaign: Campaign = {
-      id: campaignId,
+      _id: campaignId,
       name: data.name,
       party: data.party || undefined,
       description: data.description,
@@ -92,6 +92,7 @@ export function CreateCampaignForm({ onSubmitSuccess, onOpenChange, initialData 
       dataAiHint: imagePreview ? 'user uploaded campaign image' : 'campaign event',
       category: data.category,
       popularityScore: initialData?.popularityScore ?? (Math.floor(Math.random() * 50) + 20), // Mock popularity
+      createdAt: initialData?.createdAt || new Date().toISOString(),
     };
     onSubmitSuccess(newCampaign);
     reset();
@@ -142,26 +143,26 @@ export function CreateCampaignForm({ onSubmitSuccess, onOpenChange, initialData 
       <div>
         <Label htmlFor="campaignCategory">Category</Label>
         <Controller
-            name="category"
-            control={control}
-            render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value} defaultValue={initialData?.category}>
-                <SelectTrigger id="campaignCategory">
-                    <SelectValue placeholder="Select campaign category" />
-                </SelectTrigger>
-                <SelectContent>
-                    {campaignCategories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                </SelectContent>
-                </Select>
-            )}
+          name="category"
+          control={control}
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value} defaultValue={initialData?.category}>
+              <SelectTrigger id="campaignCategory">
+                <SelectValue placeholder="Select campaign category" />
+              </SelectTrigger>
+              <SelectContent>
+                {campaignCategories.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         />
         {errors.category && <p className="text-sm text-destructive mt-1">{errors.category.message}</p>}
       </div>
       <Button type="submit" disabled={isSubmitting} className="w-full">
         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
-         {isSubmitting ? (initialData ? 'Saving...' : 'Creating...') : (initialData ? 'Save Changes' : 'Create Campaign')}
+        {isSubmitting ? (initialData ? 'Saving...' : 'Creating...') : (initialData ? 'Save Changes' : 'Create Campaign')}
       </Button>
     </form>
   );

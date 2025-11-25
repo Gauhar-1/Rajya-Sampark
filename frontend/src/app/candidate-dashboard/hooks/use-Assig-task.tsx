@@ -6,63 +6,63 @@ import { useEffect, useState } from "react";
 import { NewTask } from "../types";
 
 
-export const useAssignTask = ()=>{
-    const [assignedTasks, setAssignedTasks] = useState<AssignedTask[]>([]);
-    const [isAssignTaskOpen, setIsAssignTaskOpen] = useState(false);
-    const [ loading, setIsLoading ] = useState<Boolean>(false);
-    const { token }= useAuth();
-    const { toast } = useToast();
+export const useAssignTask = () => {
+  const [assignedTasks, setAssignedTasks] = useState<AssignedTask[]>([]);
+  const [isAssignTaskOpen, setIsAssignTaskOpen] = useState(false);
+  const [loading, setIsLoading] = useState<Boolean>(false);
+  const { token } = useAuth();
+  const { toast } = useToast();
 
-  useEffect(()=>{
-    if(!token){
-       return;
+  useEffect(() => {
+    if (!token) {
+      return;
     }
-    
-    const getAllTask = async()=>{
-        setIsLoading(true);
-        try{
-            const response =await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task`,{
-             headers:{
-            "Authorization": `Bearer ${token}`,
-             }
-      });
 
-      if(response.data.success){
-        setAssignedTasks(response.data.tasks)
+    const getAllTask = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
+        });
+
+        if (response.data.success) {
+          setAssignedTasks(response.data.data?.tasks || response.data.tasks);
+        }
       }
-        }
-        catch(err){
-            console.log("Error found while fetching the tasks", err);
-        }
-        finally{
-            setIsLoading(false);
-        }
+      catch (err) {
+        console.log("Error found while fetching the tasks", err);
+      }
+      finally {
+        setIsLoading(false);
+      }
     }
 
     getAllTask();
 
-   },[token]);
+  }, [token]);
 
-  const handleAssignTask = async(newTask : NewTask) => {
+  const handleAssignTask = async (newTask: NewTask) => {
     if (!newTask.title || !newTask.volunteerId) {
-        toast({ title: 'Error', description: 'Please provide a task title and select a volunteer.', variant: 'destructive' });
-        return;
+      toast({ title: 'Error', description: 'Please provide a task title and select a volunteer.', variant: 'destructive' });
+      return;
     }
 
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task`,{
-        title: newTask.title,
-        volunteerId: newTask.volunteerId,
-    },{
-        headers:{
-            'Authorization':`Bearer ${token}`
-        }
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task`, {
+      title: newTask.title,
+      volunteerId: newTask.volunteerId,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
 
-    if(response.data.success){
-        const { task } = response.data;
-        setAssignedTasks(prev => [task, ...prev]);
-        toast({ title: 'Task Assigned!', description: `Task "${newTask.title}" assigned to VOLUNTEER.`});
-        setIsAssignTaskOpen(false);
+    if (response.data.success) {
+      const { task } = response.data.data || response.data;
+      setAssignedTasks(prev => [task, ...prev]);
+      toast({ title: 'Task Assigned!', description: `Task "${newTask.title}" assigned to VOLUNTEER.` });
+      setIsAssignTaskOpen(false);
     }
 
   };

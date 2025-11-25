@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,12 +15,19 @@
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
     "bcryptjs": "^3.0.2",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "http-status": "^2.1.0",
+    "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
-    "socket.io": "^4.8.1"
+    "morgan": "^1.10.1",
+    "socket.io": "^4.8.1",
+    "winston": "^3.18.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

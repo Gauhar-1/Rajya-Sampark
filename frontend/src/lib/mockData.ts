@@ -1,12 +1,13 @@
 
-import type { Candidate,  ElectionEvent, Campaign, Poll, VolunteerSignup, MonitoredVolunteer, FeedItem, AdminUser, Role, UserStatus, ReportedContentItem, ReportedContentStatus, ElectionEventType, VolunteerTask, VolunteerPost, VolunteerCampaign, GroupChat, AssignedTask } from '@/types';
+import type { Candidate, ElectionEvent, Campaign, Poll, VolunteerSignup, MonitoredVolunteer, FeedItem, AdminUser, Role, UserStatus, ReportedContentItem, ReportedContentStatus, ElectionEventType, VolunteerTask, VolunteerPost, VolunteerCampaign, GroupChat, AssignedTask } from '@/types';
 
 export const mockCandidates: Candidate[] = [
   {
-    id: '1',
+    _id: '1',
     name: 'Harbajan Singh',
     party: 'Progressive Party',
     region: 'District 5',
+    phone: '123-456-7890',
     imageUrl: 'https://placehold.co/100x100.png?text=AW',
     dataAiHint: 'woman portrait',
     keyPolicies: ['Universal Basic Income', 'Green Energy Initiatives', 'Education Reform'],
@@ -14,10 +15,11 @@ export const mockCandidates: Candidate[] = [
     manifestoUrl: '/candidates/1/manifesto',
   },
   {
-    id: '2',
+    _id: '2',
     name: 'Iqbal Kadir',
     party: 'Constructivist Party',
     region: 'Metro Area',
+    phone: '123-456-7890',
     imageUrl: 'https://placehold.co/100x100.png?text=BB',
     dataAiHint: 'man portrait',
     keyPolicies: ['Infrastructure Development', 'Affordable Housing', 'Job Creation'],
@@ -25,10 +27,11 @@ export const mockCandidates: Candidate[] = [
     manifestoUrl: '/candidates/2/manifesto',
   },
   {
-    id: '3',
+    _id: '3',
     name: 'Charlie Brown',
     party: 'Independent Alliance',
     region: 'District 2',
+    phone: '123-456-7890',
     imageUrl: 'https://placehold.co/100x100.png?text=CB',
     dataAiHint: 'person portrait',
     keyPolicies: ['Healthcare Access', 'Small Business Support', 'Environmental Protection'],
@@ -82,48 +85,48 @@ export const mockFeedPosts = [
     shares: 11,
   },
   {
-  id: 'post4',
-  candidateName: 'Diana Rivers',
-  candidateParty: 'Future Forward',
-  candidateRole: 'Candidate for Coastal District',
-  candidateImageUrl: 'https://placehold.co/40x40.png?text=DR',
-  dataAiHintCandidate: 'woman smiling at crowd',
-  timestamp: new Date(Date.now() - 5400000).toISOString(), // 1.5 hrs ago
-  content: 'Listening to families worried about flooding. We need urgent action 🌊. #ClimateResilience',
-  postImageUrl: 'https://placehold.co/600x400.png?text=Sea+Flooding',
-  dataAiHintPost: 'coastal flooding',
-  likes: 540,
-  comments: 92,
-  shares: 33,
-},
-{
-  id: 'post5',
-  candidateName: 'Ethan Patel',
-  candidateParty: 'Innovation Party',
-  candidateRole: 'Candidate for Tech Valley Mayor',
-  candidateImageUrl: 'https://placehold.co/40x40.png?text=EP',
-  dataAiHintCandidate: 'man in glasses with laptop',
-  timestamp: new Date(Date.now() - 1800000).toISOString(), // 30 min ago
-  content: 'Launching free weekend coding bootcamps for local teens! 💻 #TechForAll',
-  postImageUrl: 'https://placehold.co/600x400.png?text=Code+Camp',
-  dataAiHintPost: 'kids coding class',
-  likes: 310,
-  comments: 48,
-  shares: 21,
-},
-{
-  id: 'post6',
-  candidateName: 'Fatima Khan',
-  candidateParty: 'Community First',
-  candidateRole: 'Candidate for Northside Borough Council',
-  candidateImageUrl: 'https://placehold.co/40x40.png?text=FK',
-  dataAiHintCandidate: 'woman holding microphone',
-  timestamp: new Date(Date.now() - 720000).toISOString(), // 12 min ago
-  content: 'Childcare costs are crushing families. My plan ensures affordable care centers in every neighborhood. ❤️ #FamiliesFirst',
-  likes: 120,
-  comments: 26,
-  shares: 10,
-}
+    id: 'post4',
+    candidateName: 'Diana Rivers',
+    candidateParty: 'Future Forward',
+    candidateRole: 'Candidate for Coastal District',
+    candidateImageUrl: 'https://placehold.co/40x40.png?text=DR',
+    dataAiHintCandidate: 'woman smiling at crowd',
+    timestamp: new Date(Date.now() - 5400000).toISOString(), // 1.5 hrs ago
+    content: 'Listening to families worried about flooding. We need urgent action 🌊. #ClimateResilience',
+    postImageUrl: 'https://placehold.co/600x400.png?text=Sea+Flooding',
+    dataAiHintPost: 'coastal flooding',
+    likes: 540,
+    comments: 92,
+    shares: 33,
+  },
+  {
+    id: 'post5',
+    candidateName: 'Ethan Patel',
+    candidateParty: 'Innovation Party',
+    candidateRole: 'Candidate for Tech Valley Mayor',
+    candidateImageUrl: 'https://placehold.co/40x40.png?text=EP',
+    dataAiHintCandidate: 'man in glasses with laptop',
+    timestamp: new Date(Date.now() - 1800000).toISOString(), // 30 min ago
+    content: 'Launching free weekend coding bootcamps for local teens! 💻 #TechForAll',
+    postImageUrl: 'https://placehold.co/600x400.png?text=Code+Camp',
+    dataAiHintPost: 'kids coding class',
+    likes: 310,
+    comments: 48,
+    shares: 21,
+  },
+  {
+    id: 'post6',
+    candidateName: 'Fatima Khan',
+    candidateParty: 'Community First',
+    candidateRole: 'Candidate for Northside Borough Council',
+    candidateImageUrl: 'https://placehold.co/40x40.png?text=FK',
+    dataAiHintCandidate: 'woman holding microphone',
+    timestamp: new Date(Date.now() - 720000).toISOString(), // 12 min ago
+    content: 'Childcare costs are crushing families. My plan ensures affordable care centers in every neighborhood. ❤️ #FamiliesFirst',
+    likes: 120,
+    comments: 26,
+    shares: 10,
+  }
 
 ];
 
@@ -132,28 +135,28 @@ const formatDate = (date: Date): string => date.toISOString().split('T')[0];
 
 export const mockElectionEvents: ElectionEvent[] = [
   {
-    id: 'event1',
+    _id: 'event1',
     title: 'Voter Registration Deadline',
     date: formatDate(new Date(today.getTime() + 86400000 * 7)), // 7 days from now
     description: 'Last day to register to vote for the upcoming general election.',
     type: 'Deadline',
   },
   {
-    id: 'event2',
+    _id: 'event2',
     title: 'Mayoral Debate',
     date: formatDate(new Date(today.getTime() + 86400000 * 14)), // 14 days from now
     description: 'Live televised debate between mayoral candidates.',
     type: 'Key Event',
   },
   {
-    id: 'event3',
+    _id: 'event3',
     title: 'Early Voting Begins',
     date: formatDate(new Date(today.getTime() + 86400000 * 21)), // 21 days from now
     description: 'Early in-person voting locations open across the county.',
     type: 'Key Event',
   },
   {
-    id: 'event4',
+    _id: 'event4',
     title: 'General Election Day',
     date: formatDate(new Date(today.getTime() + 86400000 * 30)), // 30 days from now
     description: 'Polls open from 7 AM to 7 PM. Make your voice heard!',
@@ -163,7 +166,7 @@ export const mockElectionEvents: ElectionEvent[] = [
 
 export const mockCampaigns: Campaign[] = [
   {
-    id: 'camp1',
+    _id: 'camp1',
     name: 'Clean Air Now',
     party: 'Green Initiative',
     imageUrl: 'https://placehold.co/300x200.png',
@@ -175,7 +178,7 @@ export const mockCampaigns: Campaign[] = [
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
   },
   {
-    id: 'camp2',
+    _id: 'camp2',
     name: 'Tech for Tomorrow',
     party: 'Innovation Party',
     imageUrl: 'https://placehold.co/300x200.png',
@@ -187,7 +190,7 @@ export const mockCampaigns: Campaign[] = [
     createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
   },
   {
-    id: 'camp3',
+    _id: 'camp3',
     name: 'Affordable Housing Project',
     party: 'Community First',
     imageUrl: 'https://placehold.co/300x200.png',
@@ -205,7 +208,7 @@ export const mockPolls: Poll[] = [];
 
 export const mockMonitoredVolunteers: MonitoredVolunteer[] = [
   {
-    id: 'vol1',
+    _id: 'vol1',
     fullName: 'John Volunteer',
     email: 'john.vol@example.com',
     phone: '555-111-2222',
@@ -218,7 +221,7 @@ export const mockMonitoredVolunteers: MonitoredVolunteer[] = [
     status: 'Active',
   },
   {
-    id: 'vol2',
+    _id: 'vol2',
     fullName: 'Jane Helper',
     email: 'jane.help@example.com',
     phone: '555-333-4444',
@@ -229,7 +232,7 @@ export const mockMonitoredVolunteers: MonitoredVolunteer[] = [
     status: 'Pending Review',
   },
   {
-    id: 'vol3',
+    _id: 'vol3',
     fullName: 'Sam Supporter',
     email: 'sam.sup@example.com',
     volunteerTarget: 'candidate',
@@ -241,7 +244,7 @@ export const mockMonitoredVolunteers: MonitoredVolunteer[] = [
     status: 'Active',
   },
   {
-    id: 'vol4',
+    _id: 'vol4',
     fullName: 'Casey Canvasser',
     email: 'casey.canvass@example.com',
     phone: '555-888-9999',
@@ -253,7 +256,7 @@ export const mockMonitoredVolunteers: MonitoredVolunteer[] = [
     status: 'Pending Review',
   },
   {
-    id: 'vol5',
+    _id: 'vol5',
     fullName: 'Alex Admin',
     email: 'alex.admin@example.com',
     volunteerTarget: 'general',
@@ -267,17 +270,18 @@ export const mockMonitoredVolunteers: MonitoredVolunteer[] = [
 
 
 // Helper to get a single candidate by ID
-export const getCandidateById = (id: string): Candidate | undefined => 
-  mockCandidates.find(candidate => candidate.id === id);
+export const getCandidateById = (id: string): Candidate | undefined =>
+  mockCandidates.find(candidate => candidate._id === id);
 
 // Helper to get a single campaign by ID
 export const getCampaignById = (id: string): Campaign | undefined =>
-  mockCampaigns.find(campaign => campaign.id === id);
+  mockCampaigns.find(campaign => campaign._id === id);
 
 // Initial feed items transformation including new interaction counts
 export const initialFeedItems: FeedItem[] = mockFeedPosts.map((post): FeedItem => {
   const baseItem = {
-    id: post.id,
+    _id: post.id,
+    profileId: null,
     timestamp: post.timestamp,
     creatorName: post.candidateName,
     creatorImageUrl: post.candidateImageUrl,
@@ -285,6 +289,7 @@ export const initialFeedItems: FeedItem[] = mockFeedPosts.map((post): FeedItem =
     likes: post.likes || 0,
     comments: post.comments || 0,
     shares: post.shares || 0,
+    likedBy: [],
   };
 
   if (post.postImageUrl) {
@@ -300,6 +305,7 @@ export const initialFeedItems: FeedItem[] = mockFeedPosts.map((post): FeedItem =
     ...baseItem,
     itemType: 'text_post',
     content: post.content,
+    mediaUrl: null,
   };
 }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -358,8 +364,8 @@ export const mockVolunteerTasks: VolunteerTask[] = [
 ];
 
 export const mockAssignedTasks: AssignedTask[] = [
-    { id: 'atask-1', title: 'Make 50 get-out-the-vote calls', volunteerName: 'John Volunteer', volunteerId: 'vol1', status: 'In Progress', assignedAt: new Date(Date.now() - 86400000 * 1).toISOString() },
-    { id: 'atask-2', title: 'Design social media graphics for weekend push', volunteerName: 'Casey Canvasser', volunteerId: 'vol4', status: 'To Do', assignedAt: new Date(Date.now() - 86400000 * 2).toISOString() },
+  { _id: 'atask-1', title: 'Make 50 get-out-the-vote calls', volunteerName: 'John Volunteer', volunteerId: 'vol1', status: 'In Progress', assignedAt: new Date(Date.now() - 86400000 * 1).toISOString() },
+  { _id: 'atask-2', title: 'Design social media graphics for weekend push', volunteerName: 'Casey Canvasser', volunteerId: 'vol4', status: 'To Do', assignedAt: new Date(Date.now() - 86400000 * 2).toISOString() },
 ];
 
 export const mockVolunteerPosts: VolunteerPost[] = [
@@ -372,6 +378,6 @@ export const mockVolunteerCampaigns: VolunteerCampaign[] = [
 ];
 
 export const mockVolunteerGroupChats: GroupChat[] = [
-    { id: 'gc-1', name: 'Canvassing Team', candidateId: 'Alice Wonderland', volunteerMemberIds: ['vol-1', 'vol-4'], createdAt: new Date().toISOString() },
-    { id: 'gc-2', name: 'Event Support Crew', candidateId: 'Bob The Builder', volunteerMemberIds: ['vol-1', 'vol-3'], createdAt: new Date().toISOString() },
+  { _id: 'gc-1', name: 'Canvassing Team', description: 'Team for canvassing', volunterIds: ['vol-1', 'vol-4'], createdAt: new Date().toISOString() },
+  { _id: 'gc-2', name: 'Event Support Crew', description: 'Support crew for events', volunterIds: ['vol-1', 'vol-3'], createdAt: new Date().toISOString() },
 ];

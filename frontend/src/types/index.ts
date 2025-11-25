@@ -1,6 +1,9 @@
 
 export type Role = 'ADMIN' | 'CANDIDATE' | 'VOLUNTEER' | 'VOTER' | 'ANONYMOUS';
 
+// Added for Admin Panel User Management
+export type UserStatus = 'Active' | 'Suspended' | 'Pending Verification';
+
 export interface User {
   _id: string,
   uid: string;
@@ -28,9 +31,9 @@ export interface Candidate {
 
 export interface Comment {
   _id: string;
-  postId : string;
+  postId: string;
   profileId: User | null;
-  content:string | null;
+  content: string | null;
   timestamp: string;
 }
 
@@ -54,42 +57,42 @@ export interface TextPostFeedItem extends BaseFeedItem {
 
 export interface ImagePostFeedItem extends BaseFeedItem {
   itemType: 'image_post';
-  content?: string; 
-  mediaUrl: string; 
+  content?: string;
+  mediaUrl: string;
   mediaDataAiHint?: string;
 }
 
 export interface VideoPostFeedItem extends BaseFeedItem {
   itemType: 'video_post';
-  content?: string; 
-  mediaUrl: string; 
+  content?: string;
+  mediaUrl: string;
   mediaDataAiHint?: string;
 }
 
 export interface CampaignFeedItem extends BaseFeedItem {
   itemType: 'campaign_created';
-  campaignId: string; 
+  campaignId: string;
   campaignName: string;
   campaignLocation?: string;
   campaignDescription?: string;
 }
 
 export interface PollOption {
-  id: string; 
+  id: string;
   text: string;
   votes: number;
 }
 
 export interface hasVoted {
-  profileId : string,
-  voted : boolean
+  profileId: string,
+  voted: boolean
 }
 
 export interface PollFeedItem extends BaseFeedItem {
   itemType: 'poll_created';
-  pollId: string; 
+  pollId: string;
   pollQuestion: string;
-  pollOptions: PollOption[]; 
+  pollOptions: PollOption[];
   totalVotes: number;
   userHasVoted: hasVoted[];
 }
@@ -106,7 +109,7 @@ export interface OldFeedPost {
   candidateParty?: string;
   candidateRole?: string;
   candidateImageUrl?: string;
-  timestamp: string; 
+  timestamp: string;
   content: string;
   postImageUrl?: string;
   likes: number;
@@ -129,6 +132,7 @@ export interface Campaign {
   name: string;
   party?: string;
   imageUrl?: string;
+  dataAiHint?: string;
   description: string;
   location: string;
   popularityScore: number;
@@ -140,6 +144,7 @@ export interface Campaign {
 export interface VolunteerSignup {
   _id: string;
   fullName: string;
+  email?: string;
   phone?: string;
   volunteerTarget: 'general' | 'candidate';
   specificCandidateName?: string;
@@ -150,14 +155,14 @@ export interface VolunteerSignup {
 }
 
 export interface MonitoredVolunteer extends VolunteerSignup {
-  status: 'Active' | 'Pending' | 'Inactive';
+  status: 'Active' | 'Pending' | 'Inactive' | 'Pending Review';
 }
 
 
 export interface Poll {
   id: string;
   question: string;
-  options: PollOption[]; 
+  options: PollOption[];
   creatorId: string;
   createdAt: string;
   regionId?: string;
@@ -171,6 +176,13 @@ export interface IssuePost {
   createdAt: string;
 }
 
+export interface GroupMember {
+  userId: string,
+  roleInGroup: string,
+  joinedAt: string,
+  lastReadTimestamp: string,
+}
+
 export interface GroupChat {
   _id?: string;
   name: string;
@@ -181,14 +193,7 @@ export interface GroupChat {
   createdAt: string;
 }
 
-export interface GroupMember{
-   userId : string,
-   roleInGroup : string,
-   joinedAt : string,
-   lastReadTimestamp : string,
-}
-
-export interface Message{
+export interface Message {
   groupId: string,
   senderId: User,
   content: string,
@@ -196,7 +201,7 @@ export interface Message{
 }
 
 
-export interface FirestoreUser { 
+export interface FirestoreUser {
   uid: string;
   phone: string | null;
   email?: string | null;
@@ -206,14 +211,11 @@ export interface FirestoreUser {
   createdAt: string;
 }
 
-export interface FirestoreRole { 
+export interface FirestoreRole {
   uid: string;
   role: Role;
   updatedAt: string;
 }
-
-// Added for Admin Panel User Management
-export type UserStatus = 'Active' | 'Suspended';
 
 export interface AdminUser {
   id: string;
@@ -254,12 +256,12 @@ export interface VolunteerPost {
 }
 
 export interface AssignedTask {
-    _id: string;
-    title: string;
-    volunteerName: string;
-    volunteerId: string;
-    status: 'To Do' | 'In Progress' | 'Completed';
-    assignedAt: string;
+  _id: string;
+  title: string;
+  volunteerName: string;
+  volunteerId: string;
+  status: 'To Do' | 'In Progress' | 'Completed';
+  assignedAt: string;
 }
 
 export interface VolunteerCampaign {
@@ -270,7 +272,7 @@ export interface VolunteerCampaign {
 }
 
 export interface Report {
-  id : string,
+  id: string,
   title: string,
   description: string,
   category: string,
@@ -279,12 +281,12 @@ export interface Report {
   isAnonymous: boolean
 }
 
-export type issueStatus = 'idle' | 'pending' | 'approved' | 'rejected' | 'assigned' | 'resolved' ;
+export type issueStatus = 'idle' | 'pending' | 'approved' | 'rejected' | 'assigned' | 'resolved';
 
-export interface Issue{
-  _id : string;
-  postId : FeedItem;
-  status : issueStatus;
-  takenBy : User;
-  createdAt : string;
+export interface Issue {
+  _id: string;
+  postId: FeedItem;
+  status: issueStatus;
+  takenBy: User;
+  createdAt: string;
 }

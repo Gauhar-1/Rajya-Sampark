@@ -22,7 +22,7 @@ const volunteerSignupSchema = z.object({
         path: ['specificCandidateName'],
       });
     } else if (data.specificCandidateName.trim().length < 2) {
-       ctx.addIssue({
+      ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Candidate name must be at least 2 characters.",
         path: ['specificCandidateName'],
@@ -48,11 +48,11 @@ export async function volunteerSignupAction(input: VolunteerSignupInput): Promis
     console.log('Volunteer Signup Data:', validatedData);
 
     const newSignup: VolunteerSignup = {
-      id: `vol_${Date.now()}`,
+      _id: `vol_${Date.now()}`,
       ...validatedData,
       submittedAt: new Date().toISOString(),
     };
-    
+
     // Simulate a short delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 

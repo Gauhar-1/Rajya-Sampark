@@ -34,26 +34,26 @@ function ElectionEventCard({ event }: { event: ElectionEvent }) {
 export default function ElectionTimelinePage() {
 
   const { token } = useAuth();
-  const [ events , setEvents ] = useState<ElectionEvent[]>([]);
+  const [events, setEvents] = useState<ElectionEvent[]>([]);
 
-  
- useEffect(()=>{
-   if(!token) return;
 
-   const getTimelines = async()=>{
-       const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline`,{
-        headers:{
+  useEffect(() => {
+    if (!token) return;
+
+    const getTimelines = async () => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline`, {
+        headers: {
           "Authorization": `Bearer ${token}`,
         }
-       });
+      });
 
-       if(response.data.success){
-           setEvents(response.data.timelines);
-       }
-   };
+      if (response.data.success) {
+        setEvents(response.data.data?.timelines || response.data.timelines);
+      }
+    };
 
     getTimelines();
- },[ token ])
+  }, [token])
 
   return (
     <div>

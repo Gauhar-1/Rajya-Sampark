@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label'; 
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { mockCampaigns as initialMockCampaigns } from '@/lib/mockData';
 import type { Campaign } from '@/types';
@@ -25,7 +25,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
             alt={campaign.name}
             layout="fill"
             objectFit="cover"
-            data-ai-hint={ "campaign event"}
+            data-ai-hint={"campaign event"}
           />
         </div>
       )}
@@ -57,26 +57,26 @@ export default function CampaignDiscoveryPage() {
   const [partyFilter, setPartyFilter] = useState('all');
   const [sortBy, setSortBy] = useState('popularity');
   const { token } = useAuth();
-  
+
 
   // Get Campaigns
-  useEffect(()=>{
-    if(!token){
+  useEffect(() => {
+    if (!token) {
       return;
     }
-    const getAllCampaigns = async()=>{
-       const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, {
-        headers:{
+    const getAllCampaigns = async () => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, {
+        headers: {
           "Authorization": `Bearer ${token}`,
         }
-       });
-       if(response.data.success){
-        setCampaigns(response.data.campaigns);
-       }
+      });
+      if (response.data.success) {
+        setCampaigns(response.data.data?.campaigns || response.data.campaigns);
+      }
     }
 
     getAllCampaigns();
-  },[token]);
+  }, [token]);
 
   const parties = useMemo(() => ['all', ...new Set(campaigns.map(c => c.party).filter(Boolean) as string[])], [campaigns]);
   const locations = useMemo(() => ['all', ...new Set(campaigns.map(c => c.location).filter(Boolean) as string[])], [campaigns]);
@@ -93,9 +93,9 @@ export default function CampaignDiscoveryPage() {
     if (sortBy === 'popularity') {
       filtered.sort((a, b) => b.popularityScore - a.popularityScore);
     } else if (sortBy === 'newest') {
-      filtered.sort((a, b) => parseInt(b._id.replace('camp','')) - parseInt(a._id.replace('camp','')));
+      filtered.sort((a, b) => parseInt(b._id.replace('camp', '')) - parseInt(a._id.replace('camp', '')));
     } else if (sortBy === 'name') {
-      filtered.sort((a,b) => a.name.localeCompare(b.name));
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
     }
     return filtered;
   }, [searchTerm, locationFilter, partyFilter, sortBy, campaigns]);
@@ -125,7 +125,7 @@ export default function CampaignDiscoveryPage() {
               aria-label="Search campaigns"
             />
           </div>
-           <Select value={locationFilter} onValueChange={setLocationFilter}>
+          <Select value={locationFilter} onValueChange={setLocationFilter}>
             <SelectTrigger aria-label="Filter by location">
               <SelectValue placeholder="Filter by location" />
             </SelectTrigger>
