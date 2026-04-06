@@ -35,6 +35,24 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+
+  // 👇 ADD THIS ENTIRE SECTION TO FIX THE CSP ERROR 👇
+  async headers() {
+    return [
+      {
+        // This applies the policy to all routes
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            // I have removed the /api from your Render URL here so the whole domain is trusted
+            value: "connect-src 'self' https://api.cloudinary.com https://rajya-sampark.onrender.com http://localhost:3000 https://*.cloudworkstations.dev;"
+          }
+        ],
+      },
+    ];
+  },
+  // 👆 END OF NEW SECTION 👆
 };
 
 // Bundle analyzer configuration
