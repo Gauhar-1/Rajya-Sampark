@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: 'Login Successful!',
         description: 'Welcome back!',
       });
-      router.push('/');
+      router.push('/feed');
 
       try {
         localStorage.setItem('token', token);

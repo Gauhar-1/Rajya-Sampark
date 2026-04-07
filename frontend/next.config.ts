@@ -45,7 +45,6 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            // I have removed the /api from your Render URL here so the whole domain is trusted
             value: "connect-src 'self' https://api.cloudinary.com https://rajya-sampark.onrender.com http://localhost:3000 https://*.cloudworkstations.dev;"
           }
         ],

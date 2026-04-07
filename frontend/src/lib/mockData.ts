@@ -13,6 +13,35 @@ export const mockCandidates: Candidate[] = [
     keyPolicies: ['Universal Basic Income', 'Green Energy Initiatives', 'Education Reform'],
     profileBio: 'Alice is a dedicated public servant with over 10 years of experience in community organizing and policy development. She believes in creating a more equitable and sustainable future for all residents of District 5.',
     manifestoUrl: '/candidates/1/manifesto',
+    experience: [
+      {
+        id: 'exp1',
+        role: 'Community Organizer',
+        company: 'District 5 Coalition',
+        duration: '2015 - Present',
+        description: 'Lead initiatives for better housing and public parks.'
+      },
+      {
+        id: 'exp2',
+        role: 'Policy Advisor',
+        company: 'City Council',
+        duration: '2012 - 2015',
+        description: 'Advised on urban planning and sustainable development projects.'
+      }
+    ],
+    projects: [
+      {
+        id: 'proj1',
+        title: 'Green City Initiative',
+        description: 'A comprehensive plan to increase urban green spaces by 20%.',
+        link: 'https://example.com/green-city'
+      },
+      {
+        id: 'proj2',
+        title: 'Affordable Housing Trust',
+        description: 'Established a fund to support low-income housing developments.'
+      }
+    ]
   },
   {
     _id: '2',

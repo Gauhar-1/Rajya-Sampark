@@ -1,97 +1,131 @@
-
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockCampaigns as initialMockCampaigns } from '@/lib/mockData';
 import type { Campaign } from '@/types';
-import { Search, Filter, TrendingUp, MapPin, ChevronRight, PlusCircle } from 'lucide-react';
+import { Search, MapPin, Flag, ArrowRight, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { cn } from '@/lib/utils';
 
-function CampaignCard({ campaign }: { campaign: Campaign }) {
+gsap.registerPlugin(ScrollTrigger);
+
+// ==========================================
+// THE INITIATIVE BAND (Anti-Design Row)
+// ==========================================
+function CampaignBand({ campaign, index }: { campaign: Campaign; index: number }) {
+  const bandRef = useRef<HTMLAnchorElement>(null);
+  const formattedIndex = (index + 1).toString().padStart(2, '0');
+
   return (
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
+    <Link 
+      href={`/campaigns/${campaign._id}`}
+      ref={bandRef}
+      className="campaign-band group relative flex flex-col md:flex-row md:items-center justify-between border-b border-white/10 p-6 md:p-12 overflow-hidden bg-[#030303] hover:bg-black transition-colors duration-500 min-h-[200px]"
+    >
+      {/* BACKGROUND POSTER (Reveals on Hover) */}
       {campaign.imageUrl && (
-        <div className="relative w-full h-40">
+        <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none">
           <Image
             src={campaign.imageUrl}
             alt={campaign.name}
-            layout="fill"
-            objectFit="cover"
-            data-ai-hint={"campaign event"}
+            fill
+            className="object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-1000 ease-out"
           />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
         </div>
       )}
-      <CardHeader className="p-4">
-        <CardTitle className="text-lg">{campaign.name}</CardTitle>
-        <CardDescription className="text-sm">
-          {campaign.party && <span className="font-medium">{campaign.party} &bull; </span>}
-          <MapPin className="inline h-3 w-3 mr-1" />{campaign.location}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-4 flex-grow">
-        <p className="text-sm text-muted-foreground line-clamp-3">{campaign.description}</p>
-      </CardContent>
-      <CardFooter className="p-4 border-t">
-        <Link href={`/campaigns/${campaign._id}`}>
-          <Button variant="outline" size="sm" className="w-full">
-            Learn More <ChevronRight className="ml-1 h-4 w-4" />
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
+
+      {/* LEFT: Index & Core Data */}
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 md:gap-12 w-full md:w-auto">
+        <span className="text-2xl font-mono font-black text-white/20 group-hover:text-amber-500 transition-colors">
+          {formattedIndex}
+        </span>
+        
+        <div>
+          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white group-hover:text-amber-500 transition-colors duration-300 leading-[0.9] mb-4">
+            {campaign.name}
+          </h2>
+          
+          <div className="flex flex-wrap items-center gap-6 text-[10px] font-mono uppercase tracking-widest text-white/50">
+            {campaign.party && (
+              <span className="flex items-center gap-2 border border-white/10 px-3 py-1 bg-white/5 backdrop-blur-md">
+                <Flag className="w-3 h-3 text-amber-500" /> {campaign.party}
+              </span>
+            )}
+            <span className="flex items-center gap-2">
+              <MapPin className="w-3 h-3 text-amber-500" /> {campaign.location}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT: Description Snippet & Action */}
+      <div className="relative z-10 mt-8 md:mt-0 flex items-center justify-between md:justify-end gap-12 md:w-1/3">
+        <p className="hidden xl:block text-sm font-medium text-white/60 line-clamp-3 leading-relaxed border-l-2 border-amber-500/50 pl-4 group-hover:text-white transition-colors">
+          {campaign.description}
+        </p>
+        
+        <div className="w-16 h-16 shrink-0 rounded-full border-2 border-white/20 flex items-center justify-center group-hover:bg-amber-500 group-hover:border-amber-500 group-hover:scale-110 transition-all duration-500">
+          <ArrowRight className="w-6 h-6 text-white group-hover:text-black transition-colors" />
+        </div>
+      </div>
+    </Link>
   );
 }
 
+
+// ==========================================
+// MAIN PAGE LAYOUT
+// ==========================================
 export default function CampaignDiscoveryPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
   const [partyFilter, setPartyFilter] = useState('all');
   const [sortBy, setSortBy] = useState('popularity');
+  const [isLoading, setIsLoading] = useState(true);
+  
   const { token } = useAuth();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-
-  // Get Campaigns
   useEffect(() => {
-    if (!token) {
-      return;
-    }
+    if (!token) return;
     const getAllCampaigns = async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, {
-        headers: {
-          "Authorization": `Bearer ${token}`,
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.data.success) {
+          setCampaigns(response.data.data?.campaigns || response.data.campaigns);
         }
-      });
-      if (response.data.success) {
-        setCampaigns(response.data.data?.campaigns || response.data.campaigns);
+      } catch (error) {
+        console.error("Error fetching campaigns", error);
+      } finally {
+        setIsLoading(false);
       }
     }
-
     getAllCampaigns();
   }, [token]);
 
   const parties = useMemo(() => ['all', ...new Set(campaigns.map(c => c.party).filter(Boolean) as string[])], [campaigns]);
   const locations = useMemo(() => ['all', ...new Set(campaigns.map(c => c.location).filter(Boolean) as string[])], [campaigns]);
 
-
   const filteredAndSortedCampaigns = useMemo(() => {
     let filtered = campaigns.filter(campaign => {
       const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesLocation = locationFilter === '' || locationFilter === 'all' || campaign.location.toLowerCase().includes(locationFilter.toLowerCase());
+      const matchesLocation = locationFilter === 'all' || campaign.location.toLowerCase().includes(locationFilter.toLowerCase());
       const matchesParty = partyFilter === 'all' || campaign.party === partyFilter;
       return matchesSearch && matchesLocation && matchesParty;
     });
 
     if (sortBy === 'popularity') {
-      filtered.sort((a, b) => b.popularityScore - a.popularityScore);
+      filtered.sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0));
     } else if (sortBy === 'newest') {
       filtered.sort((a, b) => parseInt(b._id.replace('camp', '')) - parseInt(a._id.replace('camp', '')));
     } else if (sortBy === 'name') {
@@ -100,78 +134,131 @@ export default function CampaignDiscoveryPage() {
     return filtered;
   }, [searchTerm, locationFilter, partyFilter, sortBy, campaigns]);
 
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center">
-          <Search className="mr-3 h-7 w-7 text-primary" />
-          Campaign Discovery
-        </h1>
-      </div>
-      <p className="text-muted-foreground mb-6">
-        Discover and follow campaigns based on location, political party, and popularity.
-      </p>
+  // Entrance Animations
+  useLayoutEffect(() => {
+    if (!isLoading && filteredAndSortedCampaigns.length > 0) {
+      let ctx = gsap.context(() => {
+        gsap.from(".campaign-band", {
+          y: 50,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: ".ledger-container",
+            start: "top 80%",
+          }
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    }
+  }, [isLoading, filteredAndSortedCampaigns.length]);
 
-      <Card className="mb-8 p-4 sm:p-6 shadow-md rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="relative lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+  return (
+    <div ref={containerRef} className="min-h-screen bg-[#030303] w-full font-sans selection:bg-amber-500 selection:text-black">
+      
+      {/* EDITORIAL HEADER */}
+      <div className="pt-24 pb-12 px-6 sm:px-12 max-w-[1600px] mx-auto relative z-20">
+        <div className="border-b-4 border-white/10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Public Registry</span>
+            </div>
+            <h1 className="text-6xl sm:text-8xl font-black uppercase tracking-tighter leading-[0.85] text-white">
+              Active <br/> Initiatives
+            </h1>
+          </div>
+          
+          <div className="max-w-sm">
+            <p className="text-sm font-medium text-white/50 leading-relaxed text-left md:text-right">
+              Explore live community movements. Track their momentum, review their goals, and join the ones that matter to you.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* THE CONSOLE (Anti-Design Filters) */}
+      <div className="max-w-[1600px] mx-auto px-6 sm:px-12 mb-12">
+        <div className="bg-[#0a0a0a] border border-white/10 p-4 md:p-6 flex flex-col xl:flex-row gap-6">
+          
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
             <Input
               type="search"
-              placeholder="Search campaigns by name..."
+              placeholder="Search initiatives by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              aria-label="Search campaigns"
+              className="w-full bg-transparent border-b-2 border-transparent focus-visible:border-amber-500 rounded-none text-white pl-12 h-14 text-xl focus-visible:ring-0 placeholder:text-white/20 font-black tracking-tight transition-colors"
             />
           </div>
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
-            <SelectTrigger aria-label="Filter by location">
-              <SelectValue placeholder="Filter by location" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {locations.filter(l => l !== 'all').map(loc => (
-                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={partyFilter} onValueChange={setPartyFilter}>
-            <SelectTrigger aria-label="Filter by party">
-              <SelectValue placeholder="Filter by party" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Parties</SelectItem>
-              {parties.filter(p => p !== 'all').map(party => (
-                <SelectItem key={party} value={party}>{party}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="lg:col-span-4">
-            <Label htmlFor="sort-by" className="text-sm font-medium">Sort by:</Label>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger id="sort-by" aria-label="Sort campaigns">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="popularity">Popularity (Trending)</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="name">Name (A-Z)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </Card>
 
-      {filteredAndSortedCampaigns.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedCampaigns.map((campaign) => (
-            <CampaignCard key={campaign._id} campaign={campaign} />
-          ))}
+          {/* Minimalist Toggles */}
+          <div className="flex flex-wrap xl:flex-nowrap gap-4 items-center">
+            <div className="flex items-center border border-white/10 p-1 bg-[#050505]">
+              <span className="text-[10px] font-mono uppercase text-white/40 px-3">Sort:</span>
+              {['popularity', 'newest', 'name'].map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setSortBy(mode)}
+                  className={cn(
+                    "px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-colors",
+                    sortBy === mode ? "bg-amber-500 text-black" : "text-white/50 hover:text-white"
+                  )}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+
+            <select 
+              value={locationFilter} 
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="h-12 bg-[#050505] border border-white/10 text-white text-xs font-bold uppercase tracking-widest px-4 outline-none focus:border-amber-500"
+            >
+              <option value="all">All Sectors</option>
+              {locations.filter(l => l !== 'all').map(loc => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+
+            <select 
+              value={partyFilter} 
+              onChange={(e) => setPartyFilter(e.target.value)}
+              className="h-12 bg-[#050505] border border-white/10 text-white text-xs font-bold uppercase tracking-widest px-4 outline-none focus:border-amber-500"
+            >
+              <option value="all">All Parties</option>
+              {parties.filter(p => p !== 'all').map(party => (
+                <option key={party} value={party}>{party}</option>
+              ))}
+            </select>
+          </div>
+
         </div>
-      ) : (
-        <p className="text-center text-muted-foreground py-8">No campaigns found matching your criteria. Try creating one!</p>
-      )}
+      </div>
+
+      {/* THE LEDGER (List Content) */}
+      <div className="ledger-container max-w-[1600px] mx-auto px-6 sm:px-12 pb-32">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-32 opacity-50 border-t border-white/10">
+            <Loader2 className="w-8 h-8 text-amber-500 animate-spin mb-4" />
+            <span className="text-[10px] font-mono uppercase tracking-[0.3em]">Querying Database...</span>
+          </div>
+        ) : filteredAndSortedCampaigns.length > 0 ? (
+          <div className="border-t-4 border-white/20">
+            {filteredAndSortedCampaigns.map((campaign, index) => (
+              <CampaignBand key={campaign._id} campaign={campaign} index={index} />
+            ))}
+          </div>
+        ) : (
+          <div className="py-32 text-center border-t border-white/10">
+            <span className="text-white/20 font-black uppercase text-4xl tracking-tighter block mb-2">No Initiatives Found</span>
+            <span className="text-sm font-mono text-white/40">Adjust your tracking parameters.</span>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

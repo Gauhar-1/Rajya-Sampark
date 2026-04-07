@@ -1,6 +1,21 @@
 
 export type Role = 'ADMIN' | 'CANDIDATE' | 'VOLUNTEER' | 'VOTER' | 'ANONYMOUS';
 
+export interface Experience {
+  id: string;
+  role: string;
+  company: string;
+  duration: string;
+  description: string;
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  link?: string;
+}
+
 // Added for Admin Panel User Management
 export type UserStatus = 'Active' | 'Suspended' | 'Pending Verification';
 
@@ -27,6 +42,8 @@ export interface Candidate {
   keyPolicies: string[];
   manifestoUrl?: string;
   profileBio?: string;
+  experience?: Experience[];
+  projects?: Project[];
 }
 
 export interface Comment {
