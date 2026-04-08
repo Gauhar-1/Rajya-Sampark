@@ -44,14 +44,13 @@ export default function FeedList() {
   }, [data]);
 
   // ==========================================
-  // THE FIX 1: THE TRIPLE-TAP SAFETY NET
+  // FIX 1: THE TRIPLE-TAP REFRESH
+  // Forces GSAP to remeasure the page after heavy network images load
   // ==========================================
   useEffect(() => {
-    // When a new chunk of data arrives, images will load unpredictably.
-    // We force GSAP to recalculate at specific intervals to catch any layout shifts.
     const t1 = setTimeout(() => ScrollTrigger.refresh(), 100);
-    const t2 = setTimeout(() => ScrollTrigger.refresh(), 500);
-    const t3 = setTimeout(() => ScrollTrigger.refresh(), 1500);
+    const t2 = setTimeout(() => ScrollTrigger.refresh(), 750);
+    const t3 = setTimeout(() => ScrollTrigger.refresh(), 2000);
 
     return () => {
       clearTimeout(t1);
@@ -60,9 +59,8 @@ export default function FeedList() {
     };
   }, [broadsheets.length]); 
 
-
   // ==========================================
-  // THE FIX 2: DEBOUNCED GEOMETRY OBSERVER
+  // FIX 2: DEBOUNCED GEOMETRY OBSERVER
   // ==========================================
   useEffect(() => {
     if (!containerRef.current) return;
@@ -71,11 +69,11 @@ export default function FeedList() {
 
     const observer = new ResizeObserver(() => {
       clearTimeout(refreshTimeout);
-      // Increased debounce from 20ms to 250ms. 
-      // This waits for the browser to FINISH shifting layout before running the heavy GSAP math.
+      // Increased from 20ms to 250ms. We MUST wait for the browser 
+      // to finish its layout shifting before running GSAP math.
       refreshTimeout = setTimeout(() => {
         ScrollTrigger.refresh();
-      }, 250);
+      }, 250); 
     });
 
     observer.observe(containerRef.current);

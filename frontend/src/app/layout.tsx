@@ -40,10 +40,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-  modal,
 }: Readonly<{
   children: React.ReactNode;
-  modal: React.ReactNode;
 }>) {
   return (
     <html lang="en" className="dark">
@@ -68,7 +66,7 @@ export default function RootLayout({
               {/* TACTICAL BORDER */}
               <div className="hidden md:block fixed inset-4 border border-white/5 pointer-events-none z-50" />
               
-              <AppLayout modal={modal}>
+              <AppLayout>
                 {children}
               </AppLayout>
             </div>
