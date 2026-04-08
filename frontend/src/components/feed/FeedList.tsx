@@ -12,6 +12,7 @@ import NewspaperArticle from './newsPaperArticle';
 gsap.registerPlugin(ScrollTrigger);
 
 export default function FeedList() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const { ref: loadMoreRef, inView } = useInView({
     rootMargin: '800px', 
   });
@@ -31,8 +32,7 @@ export default function FeedList() {
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // ==========================================
-  // DATA CHUNKING (The Printing Press)
-  // Groups feed into blocks of up to 4 items.
+  // DATA CHUNKING
   // ==========================================
   const broadsheets = useMemo(() => {
     const rawFeed = data?.pages.flatMap((page: any) => page) || [];
@@ -42,6 +42,49 @@ export default function FeedList() {
     }
     return chunks;
   }, [data]);
+
+  // ==========================================
+  // THE FIX 1: THE TRIPLE-TAP SAFETY NET
+  // ==========================================
+  useEffect(() => {
+    // When a new chunk of data arrives, images will load unpredictably.
+    // We force GSAP to recalculate at specific intervals to catch any layout shifts.
+    const t1 = setTimeout(() => ScrollTrigger.refresh(), 100);
+    const t2 = setTimeout(() => ScrollTrigger.refresh(), 500);
+    const t3 = setTimeout(() => ScrollTrigger.refresh(), 1500);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [broadsheets.length]); 
+
+
+  // ==========================================
+  // THE FIX 2: DEBOUNCED GEOMETRY OBSERVER
+  // ==========================================
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    let refreshTimeout: ReturnType<typeof setTimeout>;
+
+    const observer = new ResizeObserver(() => {
+      clearTimeout(refreshTimeout);
+      // Increased debounce from 20ms to 250ms. 
+      // This waits for the browser to FINISH shifting layout before running the heavy GSAP math.
+      refreshTimeout = setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 250);
+    });
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(refreshTimeout);
+    };
+  }, []);
 
   if (status === 'pending') {
     return (
@@ -55,7 +98,7 @@ export default function FeedList() {
   }
 
   return (
-    <div className="w-full flex flex-col items-center bg-[#050505] text-white selection:bg-amber-500 selection:text-black">
+    <div ref={containerRef} className="w-full flex flex-col items-center bg-[#050505] text-white selection:bg-amber-500 selection:text-black">
       
       {broadsheets.map((chunk, index) => (
         <Broadsheet key={`page-${index}`} items={chunk} pageNumber={index + 1} />
@@ -84,33 +127,33 @@ export default function FeedList() {
 
 // ==========================================
 // THE BROADSHEET COMPONENT
-// Decentralized GSAP ensures animations don't break on infinite scroll
 // ==========================================
 function Broadsheet({ items, pageNumber }: { items: any[], pageNumber: number }) {
   const currentDate = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  
-  // 1. Create a ref exclusively for this page
   const pageRef = useRef<HTMLDivElement>(null);
 
-  // 2. Localized GSAP Animation
   useLayoutEffect(() => {
     let ctx = gsap.context(() => {
       gsap.fromTo(pageRef.current, 
         { opacity: 0, scale: 0.98, filter: 'grayscale(100%) blur(4px)' },
         {
-          opacity: 1, scale: 1, filter: 'grayscale(0%) blur(0px)',
+          opacity: 1, 
+          scale: 1, 
+          filter: 'grayscale(0%) blur(0px)',
           duration: 1.2,
           ease: "power3.out",
+          clearProps: "all", 
           scrollTrigger: {
             trigger: pageRef.current,
-            start: "top 85%",
+            start: "top 85%", 
+            once: true, 
           }
         }
       );
     }, pageRef);
 
     return () => ctx.revert();
-  }, []); // Empty dependency array ensures this only runs once when the chunk mounts
+  }, []);
 
   return (
     <div 
