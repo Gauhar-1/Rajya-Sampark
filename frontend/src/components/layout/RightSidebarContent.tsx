@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, HandHeart, Users, ChevronRight, MapPin, Activity } from 'lucide-react'; 
+// Added Clock to the lucide-react imports
+import { Search, HandHeart, Users, ChevronRight, MapPin, Activity, Clock } from 'lucide-react'; 
 import { mockCandidates } from '@/lib/mockData'; 
 import { HideRightSideBar } from '../auth/RequiredAuth';
 import gsap from 'gsap';
@@ -45,9 +46,6 @@ export function RightSidebarContent() {
 
   return (
     <HideRightSideBar>
-      {/* Notice: No "fixed h-screen" wrapper here anymore! 
-        This div simply flows inside the animated HUD from AppLayout.tsx 
-      */}
       <div className="flex flex-col gap-8 pb-10">
         
         {/* 1. REGIONAL STATUS */}
@@ -128,7 +126,26 @@ export function RightSidebarContent() {
            </div>
         </section>
 
-        {/* 4. VOLUNTEER (Premium Dark Mode CTA) */}
+        {/* 4. CIVIC CALENDAR (TIMELINE LINK) */}
+        <section className="intel-section">
+           <div className="p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-white/20 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <Clock className="h-5 w-5 text-amber-500" />
+                <h4 className="font-black text-lg uppercase tracking-tight">Civic Calendar</h4>
+              </div>
+              <p className="text-sm text-white/50 leading-relaxed mb-6 font-medium">
+                Review official chronologies, upcoming deadlines, and critical electoral events.
+              </p>
+              {/* Ensure this href matches your actual timeline route folder name */}
+              <Link href="/timeline" className="block">
+                <button className="w-full py-3 bg-transparent border-2 border-white/20 text-white rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-white hover:text-black hover:border-white transition-all">
+                  View Timeline
+                </button>
+              </Link>
+           </div>
+        </section>
+
+        {/* 5. VOLUNTEER (Premium Dark Mode CTA) */}
         <section className="intel-section">
           <div className="bg-gradient-to-br from-amber-600 to-amber-800 p-6 rounded-2xl shadow-xl relative overflow-hidden border border-amber-500/50">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
@@ -149,7 +166,7 @@ export function RightSidebarContent() {
           </div>
         </section>
 
-        {/* 5. LIVE ACTIVITY */}
+        {/* 6. LIVE ACTIVITY */}
         <section className="intel-section">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 border-b border-white/10 pb-3">

@@ -161,13 +161,38 @@ export const usePostComment = () => {
   });
 };
 
+
 export const useUpdateLikes = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: api.updateLikes,
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['feed'] });
+    // We pass both the ID and the Action to your API function
+    mutationFn: ({ id, action }: { id: string; action: 'like' | 'unlike' }) => 
+      api.updateLikes({ id, action }),
+
+    onMutate: async ({ id }) => {
+      // Cancel any outgoing fetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['post', id] });
+
+      // Snapshot the previous cache just in case we need to roll back
+      const previousPost = queryClient.getQueryData(['post', id]);
+
+      return { previousPost };
+    },
+
+    onError: (err, variables, context) => {
+      // If the network request fails, roll back the global cache
+      if (context?.previousPost) {
+        queryClient.setQueryData(['post', variables.id], context.previousPost);
+      }
+    },
+
+    onSettled: (data, error, variables) => {
+      // Quietly refetch this specific post in the background to ensure absolute truth
       queryClient.invalidateQueries({ queryKey: ['post', variables.id] });
+      
+      // Note: We deliberately DO NOT invalidate the entire ['feed'] here. 
+      // If we did, liking a post would cause your infinite scroll to jump and reset!
     },
   });
 };

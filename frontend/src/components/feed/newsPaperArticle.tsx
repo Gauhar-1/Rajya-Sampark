@@ -5,14 +5,59 @@ import { PenTool, ThumbsUp, Share2, Play, AlertTriangle, BarChart3 } from 'lucid
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
+// Import your hooks
+import { useUpdateLikes } from '@/app/feed/hook/usePost'; 
+import { useAuth } from '@/contexts/AuthContext'; // Import Auth Context
+
 interface ArticleProps {
   item: any;
   variant: 'lead' | 'sidebar' | 'standard';
 }
 
 export default function NewspaperArticle({ item, variant }: ArticleProps) {
-  const [endorsed, setEndorsed] = useState(false);
+  const { user } = useAuth();
+
+  // Safe extraction of initial likes
+  const initialLikes = Array.isArray(item.likes) ? item.likes.length : (item.likes || 0);
   
+  // Robust check to see if the current user's ID is in the likedBy array
+  // This handles both raw string IDs and populated user objects
+  const hasUserLiked = user && Array.isArray(item.likedBy) 
+    ? item.likedBy.some((liker: any) => liker === user._id || liker._id === user._id)
+    : (item.isLiked || false);
+
+  // Local state for Optimistic UI Updates
+  const [endorsed, setEndorsed] = useState(hasUserLiked);
+  const [likeCount, setLikeCount] = useState(initialLikes);
+
+  // The React Query Mutation
+  const { mutate: toggleLike, isPending } = useUpdateLikes();
+
+  const handleEndorse = () => {
+    if (isPending || !user) return; // Optionally prevent unauthenticated clicks
+
+    // 1. Optimistic UI Update (Immediate visual feedback)
+    const newEndorsedState = !endorsed;
+    setEndorsed(newEndorsedState);
+    setLikeCount((prev: number) => newEndorsedState ? prev + 1 : prev - 1);
+
+    // 2. Fire the API Call 
+    toggleLike(
+      { 
+        id: item._id, 
+        action: newEndorsedState ? 'like' : 'unlike' 
+      }, 
+      {
+        onError: () => {
+          // Revert UI if the network request crashes
+          setEndorsed(!newEndorsedState);
+          setLikeCount((prev: number) => newEndorsedState ? prev - 1 : prev + 1);
+          console.error("Failed to register endorsement with the public record.");
+        }
+      }
+    );
+  };
+
   const isIssue = item.content?.toLowerCase().includes('#issue') || item.isIssue;
   const isPoll = item.itemType === 'poll_created' || item.pollOptions;
   const isVideo = item.itemType === 'video_post' || (item.mediaUrl && item.mediaUrl.match(/\.(mp4|webm)$/i));
@@ -26,17 +71,22 @@ export default function NewspaperArticle({ item, variant }: ArticleProps) {
   const EditorialFooter = () => (
     <div className="mt-6 pt-4 flex items-center justify-between border-t-2 border-white/20 font-mono text-[10px] uppercase tracking-widest relative z-10 clear-both">
       <button 
-        onClick={() => setEndorsed(!endorsed)}
-        className={cn("flex items-center gap-2 font-black transition-colors", endorsed ? "text-amber-500" : "text-white/50 hover:text-white")}
+        onClick={handleEndorse}
+        disabled={isPending}
+        className={cn(
+          "flex items-center gap-2 font-black transition-all", 
+          endorsed ? "text-amber-500 scale-105" : "text-white/50 hover:text-white"
+        )}
       >
-        <ThumbsUp className="w-4 h-4" /> {endorsed ? "Verified" : "Verify Record"} ({item.likes + (endorsed ? 1 : 0)})
+        <ThumbsUp className={cn("w-4 h-4 transition-transform", endorsed && "fill-amber-500")} /> 
+        {endorsed ? "Verified" : "Verify Record"} ({likeCount})
       </button>
       <Link href={item.itemType === 'poll_created' ? `/polls/${item._id}` : `/post/${item._id}`} className="flex gap-6 text-white/40">
         <button className="hover:text-white flex items-center gap-1"><PenTool className="w-3 h-3" /> {item.comments || 0}</button>
         <button className="hover:text-white"><Share2 className="w-4 h-4" /></button>
       </Link>
       {endorsed && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 border-[3px] border-amber-500 text-amber-500 font-black uppercase text-3xl p-1 tracking-tighter rotate-[-15deg] mix-blend-screen pointer-events-none opacity-90">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 border-[3px] border-amber-500 text-amber-500 font-black uppercase text-3xl p-1 tracking-tighter rotate-[-15deg] mix-blend-screen pointer-events-none opacity-90 animate-in fade-in zoom-in duration-300">
           ENDORSED
         </div>
       )}
@@ -52,7 +102,6 @@ export default function NewspaperArticle({ item, variant }: ArticleProps) {
 
 // ==========================================
 // 1. THE EDITORIAL (Text Only)
-// Typography Focus: Multi-column text, giant drop caps.
 // ==========================================
 const EditorialText = ({ item, headline, bodyText, variant, Footer }: any) => (
   <div className="flex flex-col h-full block">
@@ -79,7 +128,6 @@ const EditorialText = ({ item, headline, bodyText, variant, Footer }: any) => (
 
 // ==========================================
 // 2. PHOTO FEATURE (Image Post)
-// Layout Focus: Image is Floated Left, text wraps around it.
 // ==========================================
 const PhotoFeature = ({ item, headline, bodyText, variant, Footer }: any) => (
   <div className="block h-full w-full">
@@ -90,7 +138,6 @@ const PhotoFeature = ({ item, headline, bodyText, variant, Footer }: any) => (
       {headline}
     </h2>
 
-    {/* THE FLOAT CONTAINER - This allows text to wrap around the image */}
     <div className={cn("float-left mr-6 mb-2 border-4 border-white/10 bg-white/5 p-1",
       variant === 'lead' ? "w-[55%] sm:w-[45%]" : "w-[60%]"
     )}>
@@ -120,7 +167,6 @@ const PhotoFeature = ({ item, headline, bodyText, variant, Footer }: any) => (
 
 // ==========================================
 // 3. KINETIC BROADCAST (Video Post)
-// Layout Focus: Video Floated Right, stark inverted colors.
 // ==========================================
 const KineticBroadcast = ({ item, headline, bodyText, variant, Footer }: any) => (
   <div className="block h-full bg-[#0a0a0a] -mx-8 -mt-8 p-8 border-b-4 border-white/10">
@@ -129,7 +175,6 @@ const KineticBroadcast = ({ item, headline, bodyText, variant, Footer }: any) =>
       <span className="flex items-center gap-1 text-red-500"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /> Live Record</span>
     </div>
 
-    {/* Video Floated to the RIGHT */}
     <div className="float-right w-[60%] sm:w-[50%] ml-6 mb-4 border border-white/20 relative bg-black group cursor-pointer hover:border-white/50 transition-colors">
       <video src={item.mediaUrl} className="w-full aspect-video object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
       <div className="absolute inset-0 flex items-center justify-center">
