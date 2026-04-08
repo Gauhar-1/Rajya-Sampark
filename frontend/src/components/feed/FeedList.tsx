@@ -1,22 +1,19 @@
 'use client';
 
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { useRef, useLayoutEffect, useEffect } from 'react';
+import { useRef, useLayoutEffect, useEffect, useMemo } from 'react';
 import { useInView } from 'react-intersection-observer';
-import api from '@/lib/api';
+import { useInfiniteFeed } from '@/app/feed/hook/usePost'; 
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import NewspaperPage from './newsPage';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CloudSun, CheckCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import NewspaperArticle from './newsPaperArticle'; 
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function FeedList() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  // The trigger for fetching the next page
   const { ref: loadMoreRef, inView } = useInView({
-    rootMargin: '400px', // Start fetching slightly before the user hits the bottom
+    rootMargin: '800px', 
   });
 
   const { 
@@ -25,114 +22,167 @@ export default function FeedList() {
     fetchNextPage, 
     hasNextPage, 
     isFetchingNextPage 
-  } = useInfiniteQuery({
-    queryKey: ['feed'],
-    queryFn: async ({ pageParam = 1 }) => {
-      const res = await api.get(`/post?page=${pageParam}&limit=10`);
-      return res.data.data || res.data;
-    },
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      // Assuming your API returns an array. If it returns 10 items, assume there's a next page.
-      // You should adjust this based on your actual backend pagination response (e.g., lastPage.hasNextPage)
-      return lastPage?.allFeed?.length === 10 ? allPages.length + 1 : undefined;
-    },
-  });
+  } = useInfiniteFeed();
 
-  // 1. Fetch Next Page Trigger
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // 2. GSAP Animation & Refresh Logic
-  useLayoutEffect(() => {
-    if (status === 'success') {
-      let ctx = gsap.context(() => {
-        const pages = gsap.utils.toArray('.newspaper-page');
-        
-        pages.forEach((page: any) => {
-          // Check if it already has a ScrollTrigger to avoid duplicate animations on re-renders
-          if (!ScrollTrigger.getById(page.id)) {
-            gsap.fromTo(page, 
-              { rotateX: 20, y: 100, opacity: 0 },
-              {
-                rotateX: 0, y: 0, opacity: 1,
-                scrollTrigger: {
-                  id: page.id, // Assign an ID to track it
-                  trigger: page,
-                  start: "top 85%",
-                  end: "top 25%",
-                  scrub: true,
-                }
-              }
-            );
-          }
-        });
-      }, containerRef);
-
-      // CRITICAL: Tell GSAP to recalculate positions because React just injected new heights into the DOM
-      // We use a tiny timeout to ensure the browser has finished painting the new nodes.
-      const timer = setTimeout(() => {
-        ScrollTrigger.refresh();
-      }, 100);
-
-      return () => {
-        clearTimeout(timer);
-        ctx.revert();
-      };
+  // ==========================================
+  // DATA CHUNKING (The Printing Press)
+  // Groups feed into blocks of up to 4 items.
+  // ==========================================
+  const broadsheets = useMemo(() => {
+    const rawFeed = data?.pages.flatMap((page: any) => page) || [];
+    const chunks = [];
+    for (let i = 0; i < rawFeed.length; i += 4) {
+      chunks.push(rawFeed.slice(i, i + 4));
     }
-  }, [status, data]); // Re-run this effect when new data is injected
+    return chunks;
+  }, [data]);
 
-  // Initial Full-Screen Loader
   if (status === 'pending') {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-[#050505]">
-        <div className="w-16 h-16 border-t-2 border-amber-500 rounded-full animate-spin mb-6" />
-        <div className="font-mono text-amber-500 animate-pulse uppercase tracking-[0.5em] text-xs">
-          Compiling Edition...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505]">
+        <Loader2 className="w-12 h-12 text-white animate-spin mb-6" />
+        <div className="font-serif text-white animate-pulse uppercase tracking-[0.3em] text-xs">
+          Aligning Typeset...
         </div>
       </div>
     );
   }
 
-  const feedItems = data?.pages.flatMap((page: any) => page.allFeed) || [];
-
   return (
-    <div ref={containerRef} className="flex flex-col items-center">
+    <div className="w-full flex flex-col items-center bg-[#050505] text-white selection:bg-amber-500 selection:text-black">
       
-      {/* The Map of Newspaper Pages */}
-      {feedItems.map((item, index) => (
-        <section 
-          key={item._id} 
-          id={`page-${item._id}`} // ID needed for GSAP duplicate checking
-          className="newspaper-page w-full min-h-screen flex items-center justify-center py-20 border-b-8 border-white/5 relative"
-        >
-          <NewspaperPage item={item} index={index} />
-        </section>
+      {broadsheets.map((chunk, index) => (
+        <Broadsheet key={`page-${index}`} items={chunk} pageNumber={index + 1} />
       ))}
 
-      {/* Infinite Scroll Intersection Target */}
-      <div 
-        ref={loadMoreRef} 
-        className="w-full h-40 flex flex-col items-center justify-center"
-      >
+      {/* The Footer Loader */}
+      <div ref={loadMoreRef} className="w-full max-w-[1400px] h-48 flex flex-col items-center justify-center border-t-8 border-white mt-12 mb-32">
         {isFetchingNextPage ? (
-          <div className="flex flex-col items-center gap-4 opacity-50">
-            <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-white/50">
-              Printing Next Edition...
-            </span>
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 text-white animate-spin" />
+            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/50">Printing Next Edition...</span>
           </div>
-        ) : hasNextPage ? (
-          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping opacity-50" />
         ) : (
-          <div className="py-12 flex flex-col items-center opacity-30">
-            <div className="w-12 h-1 bg-white mb-2" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">
-              End of Print
-            </span>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 border-4 border-white flex items-center justify-center rounded-full mb-4">
+              <CheckCircle className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">Press Concluded</span>
+          </div>
+        )}
+      </div>
+
+    </div>
+  );
+}
+
+// ==========================================
+// THE BROADSHEET COMPONENT
+// Decentralized GSAP ensures animations don't break on infinite scroll
+// ==========================================
+function Broadsheet({ items, pageNumber }: { items: any[], pageNumber: number }) {
+  const currentDate = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  
+  // 1. Create a ref exclusively for this page
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  // 2. Localized GSAP Animation
+  useLayoutEffect(() => {
+    let ctx = gsap.context(() => {
+      gsap.fromTo(pageRef.current, 
+        { opacity: 0, scale: 0.98, filter: 'grayscale(100%) blur(4px)' },
+        {
+          opacity: 1, scale: 1, filter: 'grayscale(0%) blur(0px)',
+          duration: 1.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: pageRef.current,
+            start: "top 85%",
+          }
+        }
+      );
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []); // Empty dependency array ensures this only runs once when the chunk mounts
+
+  return (
+    <div 
+      ref={pageRef}
+      id={`broadsheet-${pageNumber}`} 
+      className="broadsheet-page w-full max-w-[1400px] mx-auto bg-[#030303] border-[12px] border-double border-white/80 mb-24 relative flex flex-col"
+    >
+      {/* PAGE MASTHEAD */}
+      {pageNumber === 1 ? (
+        <header className="px-6 sm:px-12 pt-12 pb-6 border-b-[6px] border-white">
+          <div className="flex flex-col sm:flex-row justify-between items-center border-b border-white/20 pb-4 mb-6 text-[10px] font-mono uppercase tracking-[0.2em] text-white/60">
+            <div className="flex items-center gap-2 mb-2 sm:mb-0">
+              <CloudSun className="w-4 h-4" /> Silcoorie Grant Edition
+            </div>
+            <div>{currentDate}</div>
+            <div className="hidden sm:block">Public Record • Vol. 0{pageNumber}</div>
+          </div>
+          <div className="text-center w-full">
+            <h1 className="text-6xl sm:text-[9vw] font-serif font-black uppercase tracking-tighter leading-[0.75] mb-6">
+              The Daily <br className="sm:hidden" /> Dispatch
+            </h1>
+            <p className="font-sans font-bold uppercase tracking-[0.4em] text-white/50 text-[10px] sm:text-xs">
+              Unfiltered Truth. Independent Voices.
+            </p>
+          </div>
+        </header>
+      ) : (
+        <div className="flex justify-between items-center px-8 py-3 border-b-[6px] border-white font-mono text-[10px] uppercase tracking-widest text-white/50">
+          <span>The Daily Dispatch</span>
+          <span>Page {pageNumber}</span>
+          <span>{currentDate}</span>
+        </div>
+      )}
+
+      {/* THE EDITORIAL LAYOUT ENGINE */}
+      <div className="flex flex-col lg:flex-row w-full flex-1">
+        
+        {/* LEFT MASTER COLUMN */}
+        <div className="flex flex-col w-full lg:w-[65%] border-b-2 lg:border-b-0 lg:border-r-2 border-white/30">
+          
+          {/* SLOT 1: LEAD STORY */}
+          {items[0] && (
+            <article className={cn("p-8 flex flex-col", (items[2] || items[3]) ? "border-b-2 border-white/30" : "flex-1")}>
+              <NewspaperArticle item={items[0]} variant="lead" />
+            </article>
+          )}
+
+          {/* BOTTOM SPLIT */}
+          {(items[2] || items[3]) && (
+            <div className="flex flex-col md:flex-row flex-1">
+              {/* SLOT 3: BOTTOM LEFT */}
+              {items[2] && (
+                <article className={cn("p-8 flex-1 flex flex-col", items[3] ? "border-b-2 md:border-b-0 md:border-r-2 border-white/30" : "")}>
+                  <NewspaperArticle item={items[2]} variant="standard" />
+                </article>
+              )}
+              {/* SLOT 4: BOTTOM RIGHT */}
+              {items[3] && (
+                <article className="p-8 flex-1 flex flex-col">
+                  <NewspaperArticle item={items[3]} variant="standard" />
+                </article>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT SIDEBAR COLUMN */}
+        {items[1] && (
+          <div className="w-full lg:w-[35%] flex flex-col bg-white/[0.02]">
+            <article className="p-8 flex-1 flex flex-col h-full">
+              <NewspaperArticle item={items[1]} variant="sidebar" />
+            </article>
           </div>
         )}
       </div>

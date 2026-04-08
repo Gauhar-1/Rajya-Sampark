@@ -1,153 +1,190 @@
-
 'use client';
 
-import * as React from 'react'; // Added this import
+import * as React from 'react';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Send, Loader2, ImagePlus, Divide } from 'lucide-react';
-import type { ImagePostFeedItem, TextPostFeedItem } from '@/types';
-import Image from 'next/image'; // For image preview
+import { Loader2, ImagePlus, X } from 'lucide-react';
+import Image from 'next/image';
 import { useCloud } from '@/hooks/use-cloudinary';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCreatePost } from '@/app/feed/hook/usePost'; 
 
 const createPostSchema = z.object({
-  content: z.string().max(10000, 'Post content is too long.').optional(), // Optional if image is provided
-  imageFile: z.custom<FileList>().optional(), // For file upload
+  title: z.string().min(1, 'A headline is required.').max(150, 'Headline is too long.'),
+  content: z.string().max(10000, 'Article content is too long.').optional(),
+  imageFile: z.custom<FileList>().optional(),
 }).refine(data => data.content || (data.imageFile && data.imageFile.length > 0), {
-  message: "Post must have either content or an image.",
-  path: ["content"], // Associate error with content field for display
+  message: "An article requires either text body or a photograph.",
+  path: ["content"], 
 });
 
 type CreatePostFormData = z.infer<typeof createPostSchema>;
 
 interface CreatePostFormProps {
-  onSubmitSuccess: (newPost: TextPostFeedItem | ImagePostFeedItem) => void;
+  onSubmitSuccess?: () => void; 
   onOpenChange?: (open: boolean) => void;
 }
 
 export function CreatePostForm({ onSubmitSuccess, onOpenChange }: CreatePostFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const { isLoading, progress, error, uploadFile } = useCloud();
-  const { user } = useAuth();
+  const { isLoading: isUploading, progress, error: uploadError, uploadFile } = useCloud();
+  
+  const { mutate: createPost, isPending: isCreatingPost } = useCreatePost();
+
   const form = useForm<CreatePostFormData>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
+      title: '',
       content: '',
       imageFile: undefined,
     },
   });
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, watch } = form;
-  const imageFileWatch = watch('imageFile');
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = form;
 
-  React.useEffect(() => {
-    const uploadImage = async () => {
-      if (imageFileWatch && imageFileWatch.length > 0) {
-        const file = imageFileWatch[0];
-        if (file) {
-          const uploadedUrl = await uploadFile(file);
+  // 1. We extract the built-in onChange from react-hook-form's register
+  const { onChange: rhfOnChange, ...restImageRegister } = register('imageFile');
 
-          if (!uploadedUrl) {
-            console.error("upload failed, post not created.");
-            return;
-          }
+  // 2. We create our own handler that triggers the upload exactly ONCE when the file is picked
+  const handleFilePicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Tell React Hook Form about the change so validation still works
+    rhfOnChange(e);
 
-          setImagePreview(uploadedUrl);
-        }
-      } else {
-        setImagePreview(null);
+    const file = e.target.files?.[0];
+    if (file) {
+      const uploadedUrl = await uploadFile(file);
+      if (!uploadedUrl) {
+        console.error("Upload failed, draft not created.");
+        return;
       }
+      setImagePreview(uploadedUrl);
+    } else {
+      setImagePreview(null);
     }
-    uploadImage();
-  }, [imageFileWatch]);
-
-  const processSubmit: SubmitHandler<CreatePostFormData> = async (data) => {
-    const commonData = {
-      _id: `post-${Date.now()}`,
-      profileId: user,
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      timestamp: new Date().toISOString(),
-      creatorName: 'Current User', // Placeholder
-      creatorImageUrl: 'https://placehold.co/40x40.png?text=CU',
-      creatorDataAiHint: 'person face',
-      likedBy: [],
-    };
-
-    if (data.imageFile && data.imageFile.length > 0) {
-
-      const newImagePost: ImagePostFeedItem = {
-        ...commonData,
-        itemType: 'image_post',
-        content: data.content || '',
-        mediaUrl: imagePreview || '',
-        mediaDataAiHint: 'user uploaded image',
-      };
-      onSubmitSuccess(newImagePost);
-    } else if (data.content) {
-      const newTextPost: TextPostFeedItem = {
-        ...commonData,
-        itemType: 'text_post',
-        content: data.content,
-        mediaUrl: null,
-      };
-      onSubmitSuccess(newTextPost);
-    }
-
-    reset();
-    setImagePreview(null);
-    onOpenChange?.(false);
   };
 
+  const processSubmit: SubmitHandler<CreatePostFormData> = (data) => {
+    const isImagePost = !!(data.imageFile && data.imageFile.length > 0);
+
+    const postPayload = {
+      itemType: isImagePost ? 'image_post' : 'text_post',
+      title: data.title, 
+      content: data.content || '',
+      mediaUrl: isImagePost ? (imagePreview || '') : undefined,
+    };
+
+    createPost(postPayload, {
+      onSuccess: () => {
+        reset();
+        setImagePreview(null);
+        onSubmitSuccess?.(); 
+        onOpenChange?.(false); 
+      },
+      onError: (err : any) => {
+        console.error("Failed to publish to the public record:", err);
+      }
+    });
+  };
+
+  const removeImage = () => {
+    setValue('imageFile', undefined);
+    setImagePreview(null);
+  };
+
+  const isBusy = isUploading || isCreatingPost;
+
   return (
-    <form onSubmit={handleSubmit(processSubmit)} className="space-y-4">
-      <div>
-        <Label htmlFor="postContent" className="mb-1 block">What's on your mind? (Optional if uploading image)</Label>
-        <Textarea
-          id="postContent"
-          {...register('content')}
-          placeholder="Share an update, news, or an announcement..."
-          className="min-h-[100px]"
-          aria-invalid={errors.content ? "true" : "false"}
-          aria-describedby="content-error"
-        />
-        {errors.content && <p id="content-error" className="text-sm text-destructive mt-1">{errors.content.message}</p>}
-      </div>
-      <div>
-        <Label htmlFor="imageFile" className="mb-1 block">Upload Image (Optional)</Label>
-        <Input
-          id="imageFile"
-          type="file"
-          accept="image/*"
-          {...register('imageFile')}
-          className="file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-muted file:text-muted-foreground hover:file:bg-primary/10"
-        />
-        {errors.imageFile && <p className="text-sm text-destructive mt-1">{errors.imageFile.message as string}</p>}
+    <form onSubmit={handleSubmit(processSubmit)} className="flex flex-col h-full">
+      
+      {/* HEADER: META DATA */}
+      <div className="flex justify-between items-center border-b-2 border-white/20 pb-4 mb-6">
+        <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/50">
+          Editorial Draft
+        </span>
+        <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-amber-500 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+          Live Typeset
+        </span>
       </div>
 
-      {imagePreview && (
-        <div className="mt-2 rounded-md border overflow-hidden aspect-video relative">
-          <Image src={imagePreview} alt="Image preview" layout="fill" objectFit="contain" />
+      <div className="flex-1 space-y-6">
+        {/* HEADLINE INPUT */}
+        <div>
+          <input
+            {...register('title')}
+            placeholder="DRAFT HEADLINE..."
+            className="w-full bg-transparent text-3xl sm:text-5xl font-serif font-black uppercase tracking-tighter text-white placeholder:text-white/20 focus:outline-none resize-none border-none p-0"
+            autoComplete="off"
+          />
+          {errors.title && <p className="text-[10px] font-mono uppercase text-red-500 mt-2 tracking-widest">{errors.title.message}</p>}
         </div>
-      )}
-      {isLoading && <div>Uploading: {progress}%</div>}
-      {error && <div style={{ color: 'red' }}>{error}</div>}
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : (
-          <Send className="mr-2 h-4 w-4" />
-        )}
-        {isLoading ? 'Uploading...' : 'Create Post'}
-      </Button>
+        {/* BODY TEXTAREA */}
+        <div className="border-t-2 border-white/20 pt-6">
+          <textarea
+            {...register('content')}
+            placeholder="Compose the article body here. Report the facts..."
+            className="w-full bg-transparent min-h-[200px] text-lg sm:text-xl font-serif text-white/90 placeholder:text-white/30 focus:outline-none resize-none border-none p-0 custom-scrollbar"
+          />
+          {errors.content && <p className="text-[10px] font-mono uppercase text-red-500 mt-2 tracking-widest">{errors.content.message}</p>}
+        </div>
+
+        {/* IMAGE ATTACHMENT */}
+        <div className="border-t-2 border-dashed border-white/20 pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/60">Attach Photograph</span>
+            {isUploading && <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-amber-500">Processing: {progress}%</span>}
+          </div>
+
+          {!imagePreview ? (
+            <label className="group flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/30 transition-all cursor-pointer">
+              <ImagePlus className="w-6 h-6 text-white/40 group-hover:text-white mb-2 transition-colors" />
+              <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">Select File</span>
+              {/* 3. Apply our custom onChange handler here */}
+              <input
+                type="file"
+                accept="image/*"
+                {...restImageRegister}
+                onChange={handleFilePicked} 
+                className="hidden"
+              />
+            </label>
+          ) : (
+            <div className="relative w-full border-4 border-white/20 bg-black aspect-video group">
+              <Image src={imagePreview} alt="Draft preview" layout="fill" objectFit="contain" />
+              <button 
+                type="button" 
+                onClick={removeImage}
+                className="absolute top-4 right-4 w-8 h-8 bg-black border border-white flex items-center justify-center text-white hover:bg-red-600 hover:border-red-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          {errors.imageFile && <p className="text-[10px] font-mono uppercase text-red-500 mt-2 tracking-widest">{errors.imageFile.message as string}</p>}
+          {uploadError && <p className="text-[10px] font-mono uppercase text-red-500 mt-2 tracking-widest">{uploadError}</p>}
+        </div>
+      </div>
+
+      {/* FOOTER ACTIONS */}
+      <div className="mt-8 pt-6 border-t-[6px] border-white">
+        <button 
+          type="submit" 
+          disabled={isBusy} 
+          className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 hover:bg-amber-500 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+        >
+          {isBusy ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <span className="w-2 h-2 bg-black rounded-full group-hover:scale-150 transition-transform" />
+          )}
+          <span className="text-sm font-black uppercase tracking-[0.3em]">
+            {isUploading ? 'Developing Image...' : isCreatingPost ? 'Going to Press...' : 'Publish to Record'}
+          </span>
+        </button>
+      </div>
+
     </form>
   );
 }

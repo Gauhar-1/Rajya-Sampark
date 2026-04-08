@@ -5,22 +5,23 @@ import postService from '../services/postService.js';
 import issueService from '../services/issueService.js';
 
 export const createPost = catchAsync(async (req, res) => {
-    const { content, itemType, mediaUrl } = req.body;
+    const { title, content, itemType, mediaUrl } = req.body;
     const profile = req.user;
-    const post = await postService.createPost(profile, content, itemType, mediaUrl);
+    const post = await postService.createPost(title, profile, content, itemType, mediaUrl);
     sendResponse(res, httpStatus.OK, true, 'Post created successfully', { populatedPost: post });
 });
 
 export const createPoll = catchAsync(async (req, res) => {
-    const { pollQuestion, pollOptions } = req.body;
+    const { title, pollQuestion, pollOptions } = req.body;
     const profile = req.user;
-    const poll = await postService.createPoll(profile, pollQuestion, pollOptions);
+    const poll = await postService.createPoll(title, profile, pollQuestion, pollOptions);
     sendResponse(res, httpStatus.OK, true, 'Poll created successfully', { populatedPoll: poll });
 });
 
 export const getFeed = catchAsync(async (req, res) => {
-    const allFeed = await postService.getFeed();
-    sendResponse(res, httpStatus.OK, true, 'Feed fetched successfully', { allFeed });
+    const { page = 1, limit = 12 } = req.query;
+    const paginatedFeed = await postService.getFeed(page, limit);
+    sendResponse(res, httpStatus.OK, true, 'Feed fetched successfully', { paginatedFeed });
 });
 
 export const getFeedById = catchAsync(async (req, res) => {

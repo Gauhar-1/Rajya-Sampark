@@ -2,28 +2,30 @@
 
 import { useState, useRef, useLayoutEffect } from "react";
 import { format, formatDistanceToNow } from "date-fns";
-import { ThumbsUp, MessageSquare, Share2, ArrowLeft, PenTool, Loader2 } from "lucide-react";
+import { ThumbsUp, MessageSquare, Share2, ArrowLeft, PenTool, Loader2, BarChart3, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
 import Link from "next/link";
-import { usePostById, useComments, usePostComment } from "@/app/feed/hook/usePost"; 
+// Make sure to import the useVotePoll hook!
+import { usePostById, useComments, usePostComment, useVotePoll } from "@/app/feed/hook/usePost"; 
 import { useAuth } from "@/contexts/AuthContext";
 
-interface PostPageProps {
+interface PollPageProps {
   postId: string;
 }
 
-export default function PostPage({ postId }: PostPageProps) {
+export default function PollPage({ postId }: PollPageProps) {
   const [commentText, setCommentText] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth(); 
+  const { user } = useAuth();
 
   // ==========================================
-  // DATA FETCHING
+  // DATA FETCHING & MUTATIONS (React Query)
   // ==========================================
   const { data: item, isLoading: isPostLoading } = usePostById(postId);
   const { data: comments = [], isLoading: isCommentsLoading } = useComments(postId);
   const { mutate: postComment, isPending: isPostingComment } = usePostComment();
+  const { mutate: votePoll, isPending: isVoting } = useVotePoll();
 
   const isLoading = isPostLoading || isCommentsLoading;
 
@@ -35,6 +37,9 @@ export default function PostPage({ postId }: PostPageProps) {
       let ctx = gsap.context(() => {
         gsap.from(".article-reveal", {
           y: 30, opacity: 0, duration: 0.8, stagger: 0.1, ease: "power3.out"
+        });
+        gsap.from(".poll-bar-reveal", {
+          scaleX: 0, transformOrigin: "left center", duration: 1.2, stagger: 0.1, ease: "expo.out", delay: 0.3
         });
         gsap.from(".comment-reveal", {
           x: 20, opacity: 0, duration: 0.5, stagger: 0.05, ease: "power2.out", delay: 0.4
@@ -49,16 +54,18 @@ export default function PostPage({ postId }: PostPageProps) {
   // ==========================================
   const handleComment = () => {
     if (!postId || !commentText.trim()) return;
-
     postComment({
       content: commentText,
       timestamp: new Date().toISOString(),
       postId: postId
     }, {
-      onSuccess: () => {
-        setCommentText("");
-      }
+      onSuccess: () => setCommentText("") 
     });
+  };
+
+  const handleVote = (optionId: string) => {
+    if (!postId || isVoting) return;
+    votePoll({ id: postId, optionId });
   };
 
   // ==========================================
@@ -68,7 +75,7 @@ export default function PostPage({ postId }: PostPageProps) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#030303] text-white">
         <Loader2 className="w-12 h-12 text-amber-500 animate-spin mb-6" />
-        <div className="font-mono text-amber-500 uppercase tracking-[0.3em] text-xs">Retrieving Public Record...</div>
+        <div className="font-mono text-amber-500 uppercase tracking-[0.3em] text-xs">Retrieving Census Data...</div>
       </div>
     );
   }
@@ -78,7 +85,7 @@ export default function PostPage({ postId }: PostPageProps) {
       <div className="min-h-screen flex items-center justify-center bg-[#030303] text-white">
         <div className="border-4 border-white p-8 text-center max-w-md">
           <h2 className="text-3xl font-black uppercase mb-4">Record Not Found</h2>
-          <p className="font-mono text-sm text-white/50 uppercase tracking-widest mb-8">This file has been redacted or removed from the public ledger.</p>
+          <p className="font-mono text-sm text-white/50 uppercase tracking-widest mb-8">This public inquiry has been closed or redacted.</p>
           <Link href="/feed">
             <button className="w-full py-4 bg-white text-black font-black uppercase tracking-widest hover:bg-amber-500 transition-colors">Return to Edition</button>
           </Link>
@@ -87,11 +94,12 @@ export default function PostPage({ postId }: PostPageProps) {
     );
   }
 
-  const isVideo = item.itemType === "video_post" || (item.mediaUrl && item.mediaUrl.match(/\.(mp4|webm)$/i));
-  const isImage = item.itemType === "image_post" || (item.mediaUrl && !isVideo);
+  // Fallbacks depending on your specific API schema mapping
+  const headline = item.pollQuestion || item.content || "PUBLIC CENSUS INQUIRY";
+  const bodyText = item.description || "The following parameters have been set for public response. Please select the option that best represents your civic stance. Data is recorded immutably.";
   
-  const headline = item.title || "UNVERIFIED PUBLIC RECORD";
-  const bodyText = item.content || "No detailed report was provided with this submission. The record stands as submitted.";
+  const options = item.pollOptions || [];
+  const totalVotes = options.reduce((sum: number, opt: any) => sum + (opt.votes || 0), 0);
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#030303] text-white pt-8 pb-24 selection:bg-amber-500 selection:text-black">
@@ -111,68 +119,91 @@ export default function PostPage({ postId }: PostPageProps) {
       <div className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-0 border-[12px] border-double border-white/80 bg-[#050505] relative">
         
         {/* =========================================
-            LEFT PANE: THE FEATURE STORY 
-            Notice: Removed 'flex flex-col'. It is now purely 'block' to allow floats.
+            LEFT PANE: THE PUBLIC CENSUS
             ========================================= */}
-        <article className="lg:col-span-8 p-8 md:p-12 lg:border-r-[6px] lg:border-white/80 min-h-[80vh] block">
+        <article className="lg:col-span-8 p-8 md:p-12 lg:border-r-[6px] lg:border-white/80 flex flex-col min-h-[80vh] block">
           
-          {/* Byline */}
+          {/* Header/Byline */}
           <div className="article-reveal flex items-center justify-between mb-8 border-b border-white/20 pb-4 clear-both">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full border-2 border-white/20 overflow-hidden grayscale">
-                <img src={item.profileId?.photoURL || 'https://placehold.co/100x100.png'} alt="Author" className="w-full h-full object-cover" />
+              <div className="w-12 h-12 border-2 border-white/20 flex items-center justify-center bg-white/5 text-amber-500">
+                <BarChart3 className="w-6 h-6" />
               </div>
               <div>
-                <div className="font-black uppercase tracking-tight text-lg leading-none">{item.profileId?.name || "Citizen Reporter"}</div>
-                <div className="text-[9px] font-mono text-amber-500 uppercase tracking-widest mt-1">Verified Source</div>
+                <div className="font-black uppercase tracking-tight text-lg leading-none">Public Inquiry</div>
+                <div className="text-[9px] font-mono text-amber-500 uppercase tracking-widest mt-1">Initiated by {item.profileId?.name || "Citizen"}</div>
               </div>
             </div>
-            <div className="bg-white/10 px-3 py-1 font-mono text-[9px] uppercase tracking-widest">
-              ID: {item._id?.slice(-8) || "UNKNOWN"}
+            <div className="bg-white/10 px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-center">
+              <div>Poll ID: {item._id?.slice(-8) || "UNKNOWN"}</div>
+              <div className="text-amber-500 mt-1">{totalVotes} Signatures</div>
             </div>
           </div>
 
           {/* Headline */}
-          <h1 className="article-reveal font-serif font-black uppercase tracking-tighter text-5xl md:text-[6vw] leading-[0.85] text-white mb-10 text-justify break-words clear-both">
+          <h1 className="article-reveal font-serif font-black uppercase tracking-tighter text-5xl md:text-[5vw] leading-[0.9] text-white mb-8 text-justify break-words clear-both">
             {headline}
           </h1>
 
-          {/* WRAPPER FOR FLOAT + TEXT */}
-          <div className="block w-full">
-            
-            {/* THE FLOAT CONTAINER: Media floats left, text wraps around it natively */}
-            {item.mediaUrl && (
-              <div className="article-reveal float-left w-full sm:w-[60%] md:w-[50%] mr-8 mb-6 border-4 border-white/10 p-2 bg-white/5 relative group z-10">
-                {isImage && (
-                  <img src={item.mediaUrl} alt="Evidence" className="w-full aspect-[4/3] object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 hover:scale-105" />
-                )}
-                {isVideo && (
-                  <div className="relative w-full aspect-video flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.05)_10px,rgba(255,255,255,0.05)_20px)] cursor-pointer">
-                    <video src={item.mediaUrl} controls className="w-full h-full object-contain absolute inset-0 z-20 grayscale hover:grayscale-0 transition-all" />
-                  </div>
-                )}
-                <div className="text-[9px] font-mono uppercase tracking-widest text-amber-500 mt-2 text-right">
-                  Exhibit A. Visual Annex
-                </div>
-              </div>
-            )}
-
-            {/* Body Text with Drop Cap */}
-            <div className="article-reveal font-serif text-xl md:text-2xl text-white/90 leading-relaxed text-justify mb-12">
-              <span className="first-letter:text-8xl first-letter:font-black first-letter:float-left first-letter:mr-4 first-letter:mt-2 first-letter:leading-[0.7]">
-                {bodyText}
-              </span>
-            </div>
-
+          {/* Context Text */}
+          <div className="article-reveal font-serif text-lg text-white/70 leading-relaxed text-justify mb-10 border-l-2 border-amber-500 pl-4 py-2">
+            {bodyText}
           </div>
 
-          {/* Action Footer 
-              clear-both is critical here so it sits below the text AND the floated image if the text is very short 
-          */}
-          <div className="article-reveal mt-12 border-t-4 border-white/20 pt-6 flex justify-between items-center font-mono text-[10px] uppercase tracking-widest clear-both">
-            <button className="flex items-center gap-2 hover:text-amber-500 transition-colors">
-              <ThumbsUp className="w-4 h-4" /> Verify Record ({item.likes || 0})
-            </button>
+          {/* INTERACTIVE POLL OPTIONS */}
+          <div className="article-reveal flex-1 flex flex-col gap-4 mb-12">
+            {options.map((opt: any, index: number) => {
+              // Avoid division by zero
+              const percent = totalVotes === 0 ? 0 : Math.round(((opt.votes || 0) / totalVotes) * 100);
+              
+              return (
+                <button 
+                  key={opt._id || index}
+                  onClick={() => handleVote(opt._id)}
+                  disabled={isVoting}
+                  className="group relative w-full border-2 border-white/20 bg-white/5 p-5 md:p-6 text-left overflow-hidden transition-all hover:border-amber-500 disabled:opacity-80 disabled:cursor-not-allowed"
+                >
+                  {/* The Background Progress Bar */}
+                  <div 
+                    className="poll-bar-reveal absolute top-0 left-0 h-full bg-white/10 transition-all duration-1000 ease-out group-hover:bg-white/20" 
+                    style={{ width: `${percent}%` }} 
+                  />
+                  
+                  {/* The Content */}
+                  <div className="relative z-10 flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                      <span className="text-[10px] font-mono font-bold text-white/30 group-hover:text-amber-500 transition-colors">
+                        {(index + 1).toString().padStart(2, '0')}
+                      </span>
+                      <span className="font-sans font-bold text-lg md:text-xl uppercase tracking-wider text-white">
+                        {opt.text}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <span className="font-mono text-sm text-white/50">{opt.votes || 0} Votes</span>
+                      <span className="font-black text-2xl md:text-3xl text-amber-500 w-16 text-right">
+                        {percent}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Loading Overlay for this specific option if voting */}
+                  {isVoting && (
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Action Footer */}
+          <div className="article-reveal mt-auto border-t-4 border-white/20 pt-6 flex justify-between items-center font-mono text-[10px] uppercase tracking-widest clear-both">
+            <div className="flex items-center gap-2 text-white/50">
+              <CheckCircle2 className="w-4 h-4" /> Live Tally Active
+            </div>
             <div className="flex gap-6">
               <span className="flex items-center gap-2 text-white/50"><PenTool className="w-4 h-4"/> {comments.length} Statements</span>
               <button className="hover:text-amber-500 transition-colors flex items-center gap-2 text-white/50"><Share2 className="w-4 h-4"/> Broadcast</button>

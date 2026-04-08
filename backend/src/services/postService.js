@@ -4,7 +4,10 @@ import Comment from "../models/Comment.js";
 import AppError from "../utils/AppError.js";
 import httpStatus from "http-status";
 
-const createPost = async (profile, content, itemType, mediaUrl) => {
+const createPost = async (title, profile, content, itemType, mediaUrl) => {
+    if (!title || title.length === 0) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Post title is required");
+    }
     if ((itemType === "image_post" || itemType === "video_post") && !mediaUrl) {
         throw new AppError(httpStatus.BAD_REQUEST, "Media Url not found");
     }
@@ -13,6 +16,7 @@ const createPost = async (profile, content, itemType, mediaUrl) => {
 
     const post = await Post.create({
         profileId: profile._id,
+        title,
         content,
         mediaUrl,
         itemType,
@@ -26,7 +30,10 @@ const createPost = async (profile, content, itemType, mediaUrl) => {
     return await post.populate('profileId');
 };
 
-const createPoll = async (profile, pollQuestion, pollOptions) => {
+const createPoll = async (title, profile, pollQuestion, pollOptions) => {
+    if (!title || title.length === 0) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Poll title is required");
+    }
     if (!pollQuestion || pollQuestion.length === 0) {
         throw new AppError(httpStatus.BAD_REQUEST, "Poll question is required");
     }
@@ -36,6 +43,7 @@ const createPoll = async (profile, pollQuestion, pollOptions) => {
 
     const poll = await Poll.create({
         profileId: profile._id,
+        title,
         pollQuestion,
         pollOptions,
         itemType: 'poll_created',
@@ -46,16 +54,25 @@ const createPoll = async (profile, pollQuestion, pollOptions) => {
     return await poll.populate('profileId');
 };
 
-const getFeed = async () => {
+const getFeed = async (page, limit) => {
     const posts = await Post.find().populate('profileId');
     const polls = await Poll.find().populate('profileId');
-    return [...posts, ...polls]; // You might want to sort this by timestamp
+
+    const allFeed = [...posts, ...polls];
+    allFeed.sort((a, b) => b.timestamp - a.timestamp);
+
+    const paginatedFeed = allFeed.slice((page - 1) * limit, page * limit);
+
+    return paginatedFeed;
 };
 
 const getFeedById = async (id) => {
     const post = await Post.findById(id).populate('profileId');
     if (!post) {
-        throw new AppError(httpStatus.NOT_FOUND, "Couldn't find the post");
+        const poll = await Poll.findById(id).populate('profileId');
+        if (!poll)
+            throw new AppError(httpStatus.NOT_FOUND, "Couldn't find the post");
+        return poll;
     }
     return post;
 };

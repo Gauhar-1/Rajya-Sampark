@@ -2,6 +2,7 @@ import mongoose, { Schema, model } from "mongoose"
 
 const schema = new Schema({
    profileId : { type: mongoose.Schema.Types.ObjectId, ref: 'Profile', require: true},
+   title: String,
    content: String,
    mediaUrl : String || null,
    timestamp: Date,

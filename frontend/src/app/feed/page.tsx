@@ -34,7 +34,7 @@ export default function HomePage() {
       const rect = orb.getBoundingClientRect();
       const orbX = rect.left + rect.width / 2;
       const orbY = rect.top + rect.height / 2;
-      
+
       const distanceX = e.clientX - orbX;
       const distanceY = e.clientY - orbY;
       const distance = Math.sqrt(distanceX ** 2 + distanceY ** 2);
@@ -58,7 +58,7 @@ export default function HomePage() {
 
   useLayoutEffect(() => {
     let ctx = gsap.context(() => {
-      
+
       // 1. Structural Title Reveal
       gsap.from(".header-element", {
         y: 30,
@@ -92,17 +92,17 @@ export default function HomePage() {
 
   return (
     <div ref={containerRef} className="relative min-h-screen w-full bg-[#030303] overflow-hidden font-sans">
-      
+
       {/* =========================================
           BACKGROUND: EDITORIAL GRID (Structural)
           ========================================= */}
       <div className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden opacity-[0.03]">
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            backgroundImage: 'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)', 
-            backgroundSize: '100px 100px' 
-          }} 
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)',
+            backgroundSize: '100px 100px'
+          }}
         />
         <div ref={bgTextRef} className="text-[18vw] font-black uppercase tracking-tighter leading-none text-white whitespace-nowrap select-none">
           COMMUNITY
@@ -113,22 +113,22 @@ export default function HomePage() {
           FOREGROUND: THE PAGE WRAPPER
           ========================================= */}
       <div className="relative z-10 w-full pt-16">
-        
+
         {/* Editorial Context Header */}
         <div className="max-w-[1400px] mx-auto px-6 sm:px-12 mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between border-b-4 border-white/20 pb-8">
-            
+
             <div className="header-element">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
                 <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Live Updates</span>
               </div>
               <h1 className="text-5xl sm:text-7xl font-black uppercase tracking-tighter leading-[0.8] text-white">
-                Local <br/>
+                Local <br />
                 <span className="text-white/50">Editions</span>
               </h1>
             </div>
-            
+
             <div className="header-element mt-8 md:mt-0 text-left md:text-right flex flex-col md:items-end">
               <div className="text-[10px] font-mono text-white/40 uppercase tracking-widest mb-2 border-b border-white/10 pb-1 inline-block">
                 Public Record
@@ -156,9 +156,9 @@ export default function HomePage() {
           ========================================= */}
       <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
         <div ref={commandOrbRef} className="relative group pointer-events-auto">
-          
+
           {/* Main Action Block */}
-          <button 
+          <button
             onClick={() => setActiveDialog('post')}
             className="relative w-16 h-16 bg-white text-black flex items-center justify-center border-4 border-black shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-20 hover:scale-95 transition-transform duration-300"
           >
@@ -167,9 +167,9 @@ export default function HomePage() {
 
           {/* Mechanical Expansion Actions */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none z-10">
-            
+
             {/* Video Option */}
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); setActiveDialog('video'); }}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 bg-[#111] border border-white/20 px-4 flex items-center gap-2 text-white/50 opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-x-[130px] transition-all duration-400 ease-out hover:bg-white hover:text-black pointer-events-auto shadow-xl"
             >
@@ -178,7 +178,7 @@ export default function HomePage() {
             </button>
 
             {/* Poll Option */}
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); setActiveDialog('poll'); }}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 bg-[#111] border border-white/20 px-4 flex items-center gap-2 text-white/50 opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-[60px] transition-all duration-400 ease-out hover:bg-white hover:text-black pointer-events-auto shadow-xl"
             >
@@ -196,7 +196,7 @@ export default function HomePage() {
           ========================================= */}
       <Dialog open={activeDialog !== null} onOpenChange={() => setActiveDialog(null)}>
         <DialogContent className="bg-[#050505] border-4 border-white sm:max-w-[600px] p-0 rounded-none overflow-hidden shadow-2xl">
-          
+
           <div className="px-8 py-6 border-b-2 border-white flex justify-between items-center bg-white text-black">
             <div className="flex items-center gap-4">
               <LayoutGrid className="w-6 h-6" />
@@ -216,7 +216,7 @@ export default function HomePage() {
             {activeDialog === 'video' && <CreateVideoForm onSubmitSuccess={handleSuccess} onOpenChange={() => setActiveDialog(null)} />}
             {activeDialog === 'poll' && <CreatePollForm onSubmitSuccess={handleSuccess} onOpenChange={() => setActiveDialog(null)} />}
           </div>
-          
+
         </DialogContent>
       </Dialog>
     </div>
