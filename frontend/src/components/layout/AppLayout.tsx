@@ -29,6 +29,8 @@ export function AppLayout({ children, modal }: AppLayoutProps) {
 
   // GSAP 3D Spatial Animations
   useLayoutEffect(() => {
+    if (isNoLayoutPage || !layoutRef.current || !canvasRef.current || !rightPanelRef.current) return;
+
     let ctx = gsap.context(() => {
       // 1. Left Menu: 3D Canvas Push
       if (isLeftOpen) {

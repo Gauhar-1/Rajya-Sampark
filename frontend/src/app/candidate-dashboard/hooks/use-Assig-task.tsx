@@ -21,7 +21,7 @@ export const useAssignTask = () => {
     const getAllTask = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task`, {
+        const response = await axios.get(`/api/task`, {
           headers: {
             "Authorization": `Bearer ${token}`,
           }
@@ -49,7 +49,7 @@ export const useAssignTask = () => {
       return;
     }
 
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task`, {
+    const response = await axios.post(`/api/task`, {
       title: newTask.title,
       volunteerId: newTask.volunteerId,
     }, {

@@ -20,7 +20,7 @@ export const useIssue = () => {
         const getIssue = async () => {
             setIsLoading(true);
             try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue/candidate`, {
+                const response = await axios.get(`/api/post/issue/candidate`, {
                     headers: apiHeaders
                 });
 
@@ -42,7 +42,7 @@ export const useIssue = () => {
     const handleStatusChange = async (issueId: string, status: issueStatus) => {
         console.log(`Attempting to accept issue: ${issueId}`);
         try {
-            const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue/${issueId}/status`, { status }, { headers: apiHeaders });
+            const response = await axios.patch(`/api/post/issue/${issueId}/status`, { status }, { headers: apiHeaders });
 
             if (response.data.success) {
                 setIssues(prev =>

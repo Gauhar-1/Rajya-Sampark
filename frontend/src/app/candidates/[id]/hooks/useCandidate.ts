@@ -17,7 +17,7 @@ export const useCandidate = (candidateId: string) => {
         const getCandidate = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/candidate/${candidateId}`, {
+                const response = await axios.get(`/api/candidate/${candidateId}`, {
                     headers: {
                         "Authorization": `Bearer ${token}`
                     }

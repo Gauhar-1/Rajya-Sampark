@@ -1,6 +1,7 @@
 import Issue from '@/lib/models/Issue';
 import Post from '@/lib/models/Post';
 import Candidate from '@/lib/models/Candidate';
+import Profile from '@/lib/models/Profile';
 import { AppError } from '@/lib/api-utils';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

@@ -14,13 +14,13 @@ export function middleware(request: NextRequest) {
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
 
     // Content Security Policy (adjust as needed for your app)
-   const cspHeader = `
+  const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://res.cloudinary.com https://placehold.co;
+    img-src 'self' blob: data: https://res.cloudinary.com https://placehold.co https://img.clerk.com https://*.clerk.com;
     font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://api.cloudinary.com ${process.env.NEXT_PUBLIC_NEXT_API_URL} http://localhost:3000 https://*.cloudworkstations.dev https://*.clerk.accounts.dev https://*.clerk.com;
+    connect-src 'self' https://api.cloudinary.com http://localhost:3000 https://*.cloudworkstations.dev https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com;
     media-src 'self' https://res.cloudinary.com;
     frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com;
     worker-src 'self' blob:;

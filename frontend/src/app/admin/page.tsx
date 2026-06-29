@@ -104,9 +104,9 @@ export default function AdminPage() {
       setIsLoading(true);
       try {
         const [profRes, candRes, evRes] = await Promise.all([
-          axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/profile`, { headers: { "Authorization": `Bearer ${token}` } }),
-          axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/candidate`, { headers: { "Authorization": `Bearer ${token}` } }),
-          axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline`, { headers: { "Authorization": `Bearer ${token}` } })
+          axios.get(`/api/profile`, { headers: { "Authorization": `Bearer ${token}` } }),
+          axios.get(`/api/candidate`, { headers: { "Authorization": `Bearer ${token}` } }),
+          axios.get(`/api/timeline`, { headers: { "Authorization": `Bearer ${token}` } })
         ]);
         if (profRes.data.success) setAdminUsers(profRes.data.profiles);
         if (candRes.data.success) setCandidates(candRes.data.candidates);
@@ -145,7 +145,7 @@ export default function AdminPage() {
   // ==========================================
   const handleRoleChange = async(id: string, newRole: Role) => {
     try {
-      const res = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/profile/${id}/role`, { newRole }, { headers: { "Authorization": `Bearer ${token}` }});
+      const res = await axios.patch(`/api/profile/${id}/role`, { newRole }, { headers: { "Authorization": `Bearer ${token}` }});
       if(res.data.success) {
         setAdminUsers(prev => prev.map(u => u.uid === id ? { ...u, role: newRole } : u));
         toast({ title: "Role Updated", description: `User assigned role: ${newRole}` });
@@ -155,7 +155,7 @@ export default function AdminPage() {
 
   const handleStatusChange = async(id: string, newStatus: UserStatus) => {
     try {
-      const res = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/profile/${id}/status`, { newStatus}, { headers: { "Authorization": `Bearer ${token}` }});
+      const res = await axios.patch(`/api/profile/${id}/status`, { newStatus}, { headers: { "Authorization": `Bearer ${token}` }});
       if(res.data.success) {
         setAdminUsers(prev => prev.map(u => u.uid === id ? { ...u, status: newStatus } : u));
         toast({ title: "Status Updated", description: `User status: ${newStatus}` });

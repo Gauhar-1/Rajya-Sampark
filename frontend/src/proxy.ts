@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 // Define public routes that do not require authentication
 const isPublicRoute = createRouteMatcher([
   '/',
+  '/feed',
   '/login(.*)',
   '/sign-up(.*)',     // Added sign-up so new users can actually access it
   '/api/webhooks(.*)',

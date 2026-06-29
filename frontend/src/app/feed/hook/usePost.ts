@@ -4,7 +4,7 @@ import axios from 'axios';
 // ==========================================
 // 1. AXIOS INSTANCE & INTERCEPTOR
 // ==========================================
-const API_BASE = `${process.env.NEXT_PUBLIC_NEXT_API_URL}/post` || 'http://localhost:3000/api/post';
+const API_BASE = `/api/post` || 'http://localhost:3000/api/post';
 
 // Create a custom instance of Axios
 const apiClient = axios.create({

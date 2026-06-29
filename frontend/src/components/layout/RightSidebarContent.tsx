@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 // Added Clock to the lucide-react imports
 import { Search, HandHeart, Users, ChevronRight, MapPin, Activity, Clock } from 'lucide-react'; 
@@ -24,14 +24,24 @@ export function RightSidebarContent() {
       totalVotes: pollOptions.reduce((sum, opt) => sum + opt.votes, 0),
       userHasVoted: false,
     });
+  }, []);
 
-    gsap.from(".intel-section", {
-      y: 20,
-      opacity: 0,
-      stagger: 0.1,
-      duration: 0.6,
-      ease: "power2.out"
-    });
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    let ctx = gsap.context(() => {
+      const targets = gsap.utils.toArray(".intel-section");
+      if (targets.length > 0) {
+        gsap.from(targets, {
+          y: 20,
+          opacity: 0,
+          stagger: 0.1,
+          duration: 0.6,
+          ease: "power2.out"
+        });
+      }
+    }, containerRef);
+    return () => ctx.revert();
   }, []);
 
   const handlePollVote = (optionId: string) => {
@@ -46,7 +56,7 @@ export function RightSidebarContent() {
 
   return (
     <HideRightSideBar>
-      <div className="flex flex-col gap-8 pb-10">
+      <div ref={containerRef} className="flex flex-col gap-8 pb-10">
         
         {/* 1. REGIONAL STATUS */}
         <div className="intel-section flex items-start justify-between border-b border-white/10 pb-6">

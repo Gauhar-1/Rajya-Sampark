@@ -98,7 +98,7 @@ export default function CampaignDiscoveryPage() {
     const getAllCampaigns = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, {
+        const response = await axios.get(`/api/campaign`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.data.success) {

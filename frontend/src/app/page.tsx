@@ -287,7 +287,7 @@ export default function PrincipalLandingPage() {
         
         <div className="relative z-10 text-center flex flex-col items-center">
           <h2 className="text-5xl md:text-7xl font-black uppercase mb-10">System Ready.</h2>
-          <Link href="/login" className="bg-amber-500 text-black px-16 py-6 rounded-full font-black text-2xl uppercase tracking-widest hover:bg-white hover:scale-105 transition-all shadow-[0_0_50px_rgba(245,158,11,0.3)]">
+          <Link href="/feed" className="bg-amber-500 text-black px-16 py-6 rounded-full font-black text-2xl uppercase tracking-widest hover:bg-white hover:scale-105 transition-all shadow-[0_0_50px_rgba(245,158,11,0.3)]">
             Initialize
           </Link>
         </div>

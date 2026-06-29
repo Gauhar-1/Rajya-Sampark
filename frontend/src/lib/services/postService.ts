@@ -1,6 +1,7 @@
 import Post from '@/lib/models/Post';
 import Poll from '@/lib/models/Poll';
 import Comment from '@/lib/models/Comment';
+import Profile from '@/lib/models/Profile';
 import { AppError } from '@/lib/api-utils';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

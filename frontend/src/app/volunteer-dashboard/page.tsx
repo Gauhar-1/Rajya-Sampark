@@ -79,10 +79,10 @@ export default function VolunteerDashboardPage() {
       setIsLoading(true);
       try {
         const [taskRes, campRes, chatRes, postRes] = await Promise.all([
-          axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task/volunteer`, { headers: { "Authorization": `Bearer ${token}` } }),
-          axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign/volunteer`, { headers: { "Authorization": `Bearer ${token}` } }),
-          axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/chat/volunteer`, { headers: { "Authorization": `Bearer ${token}` } }),
-          axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue`, { headers: { "Authorization": `Bearer ${token}` } })
+          axios.get(`/api/task/volunteer`, { headers: { "Authorization": `Bearer ${token}` } }),
+          axios.get(`/api/campaign/volunteer`, { headers: { "Authorization": `Bearer ${token}` } }),
+          axios.get(`/api/chat/volunteer`, { headers: { "Authorization": `Bearer ${token}` } }),
+          axios.get(`/api/post/issue`, { headers: { "Authorization": `Bearer ${token}` } })
         ]);
 
         if (taskRes.data.success) setTasks(taskRes.data.data?.tasks || taskRes.data.tasks);
@@ -103,7 +103,7 @@ export default function VolunteerDashboardPage() {
   // ==========================================
   const handleStatusChange = async (taskId: string, newStatus: VolunteerTask['status']) => {
     try {
-      const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/task/${taskId}/status`, { newStatus }, {
+      const response = await axios.patch(`/api/task/${taskId}/status`, { newStatus }, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -117,7 +117,7 @@ export default function VolunteerDashboardPage() {
 
   const handleTakePermission = async (id: string) => {
     try {
-      const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue/${id}`, {}, {
+      const response = await axios.patch(`/api/post/issue/${id}`, {}, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -131,7 +131,7 @@ export default function VolunteerDashboardPage() {
 
   const handleDeleteIssue = async (id: string) => {
     try {
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/post/issue/${id}`, {
+      const response = await axios.delete(`/api/post/issue/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -146,7 +146,7 @@ export default function VolunteerDashboardPage() {
   const handleSaveCampaign = async (campaignData: Campaign) => {
     try {
       if (editingCampaign) {
-        const response = await axios.put(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, campaignData, {
+        const response = await axios.put(`/api/campaign`, campaignData, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.data.success) {
@@ -155,7 +155,7 @@ export default function VolunteerDashboardPage() {
           toast({ title: "Initiative Updated" });
         }
       } else {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign`, campaignData, {
+        const response = await axios.post(`/api/campaign`, campaignData, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.data.success) {

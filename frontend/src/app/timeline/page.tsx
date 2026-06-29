@@ -136,7 +136,7 @@ export default function ElectionTimelinePage() {
     if (!token) return;
     const getTimelines = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/timeline`, {
+        const response = await axios.get(`/api/timeline`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.data.success) {

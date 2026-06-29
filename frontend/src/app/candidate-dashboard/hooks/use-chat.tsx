@@ -16,7 +16,7 @@ export const useChat = ()=>{
     const fetchGroups = async()=>{
         setIsLoading(true);
         try{
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/chat`,{
+            const response = await axios.get(`/api/chat`,{
                 headers:{
                     "Authorization": `Bearer ${token}`
                 }
@@ -46,7 +46,7 @@ export const useChat = ()=>{
       createdAt: new Date().toLocaleString(),
     };
     try{
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/chat`, newGroupChat, {
+        const response = await axios.post(`/api/chat`, newGroupChat, {
             headers:{
                 "Authorization" : `Bearer ${token}`
             }

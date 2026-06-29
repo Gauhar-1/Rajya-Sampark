@@ -50,7 +50,7 @@ export const useLogin = () => {
         }
 
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/auth/send-otp`, { data, locationData });
+            const response = await axios.post(`/api/auth/send-otp`, { data, locationData });
 
             if (response.data.success) {
                 // Check for nested data structure as per request

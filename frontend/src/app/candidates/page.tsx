@@ -148,7 +148,7 @@ export default function CandidateDirectoryPage() {
     const getCandidates = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/candidate`, {
+        const response = await axios.get(`/api/candidate`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.data.success) {

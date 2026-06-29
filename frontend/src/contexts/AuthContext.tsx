@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setIsLoading(true);
 
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/auth/verify-otp`, {
+    const response = await axios.post(`/api/auth/verify-otp`, {
       otp,
       phone
     })

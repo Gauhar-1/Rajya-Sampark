@@ -1,5 +1,6 @@
 import Group from '@/lib/models/Group';
 import Volunteer from '@/lib/models/Volunteer';
+import Profile from '@/lib/models/Profile';
 import { AppError } from '@/lib/api-utils';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

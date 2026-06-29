@@ -18,7 +18,7 @@ export const useVolunteer = () => {
     const getAllVolunteers = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/volunteer`, {
+        const response = await axios.get(`/api/volunteer`, {
           headers: {
             "Authorization": `Bearer ${token}`,
           }
@@ -72,7 +72,7 @@ export const useVolunteer = () => {
 
     const status = action === 'accept' ? 'Active' : 'Inactive';
 
-    const response = await axios.patch(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/volunteer/${volunteerId}/status`, { status }, {
+    const response = await axios.patch(`/api/volunteer/${volunteerId}/status`, { status }, {
       headers: {
         "Authorization": `Bearer ${token}`
       }

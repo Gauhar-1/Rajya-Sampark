@@ -33,9 +33,9 @@ export const INTEREST_AREAS = [
 ];
 
 export const ROLE_PERMISSIONS: Record<string, string[]> = {
-  ANONYMOUS: ["/"],
-  VOTER: ["/", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-signup'],
-  VOLUNTEER: ["/", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-dashboard'],
-  CANDIDATE: ["/", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/candidate-dashboard'],
-  ADMIN: ["/", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-signup', '/volunteer-dashboard','/candidate-dashboard','/admin' ],
+  ANONYMOUS: ["/", "/feed"],
+  VOTER: ["/", "/feed","/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-signup'],
+  VOLUNTEER: ["/", "/feed", "/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-dashboard'],
+  CANDIDATE: ["/", "/feed","/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/candidate-dashboard'],
+  ADMIN: ["/", "/feed","/candidates",'/timeline' , '/manifesto-summarizer','/report', '/campaigns' ,'/volunteer-signup', '/volunteer-dashboard','/candidate-dashboard','/admin' ],
 }

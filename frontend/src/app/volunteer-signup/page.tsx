@@ -103,7 +103,7 @@ export default function VolunteerSignupPage() {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsLoading(true);
     try {
-      const result = await axios.post(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/volunteer`, data, {
+      const result = await axios.post(`/api/volunteer`, data, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (result.data.success) {

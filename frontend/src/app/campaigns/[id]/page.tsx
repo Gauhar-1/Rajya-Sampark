@@ -29,7 +29,7 @@ export default function CampaignProfilePage() {
     const getCampaign = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_NEXT_API_URL}/campaign/${campaignId}`, {
+        const response = await axios.get(`/api/campaign/${campaignId}`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.data.success) {
