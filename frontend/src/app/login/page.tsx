@@ -115,6 +115,7 @@ export default function LoginPage() {
       <div className="w-full lg:w-7/12 flex items-center justify-center p-6 sm:p-8 lg:p-16 relative z-10">
         <div ref={formWrapperRef} className="w-full max-w-[440px] relative fade-up">
            <SignIn 
+             signUpUrl="/sign-up"
              appearance={{
                elements: {
                  rootBox: "w-full",

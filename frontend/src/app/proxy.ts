@@ -16,13 +16,14 @@ export function middleware(request: NextRequest) {
     // Content Security Policy (adjust as needed for your app)
     const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://*.clerk.accounts.dev https://*.clerk.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https://res.cloudinary.com https://placehold.co;
     font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://api.cloudinary.com ${process.env.NEXT_PUBLIC_NEXT_API_URL} http://localhost:3000 https://*.cloudworkstations.dev;
+    connect-src 'self' https://api.cloudinary.com ${process.env.NEXT_PUBLIC_NEXT_API_URL} http://localhost:3000 https://*.cloudworkstations.dev https://*.clerk.accounts.dev https://*.clerk.com;
     media-src 'self' https://res.cloudinary.com;
     frame-src 'self';
+    worker-src 'self' blob:;
   `.replace(/\s{2,}/g, ' ').trim();
 
     response.headers.set('Content-Security-Policy', cspHeader);
