@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { MapPin, ArrowRight, ArrowLeft, Smartphone, ShieldCheck, Users } from 'lucide-react';
+import { ArrowLeft, Users } from 'lucide-react';
 import Link from 'next/link';
 import gsap from 'gsap';
-import { useLogin, PhoneFormData, OtpFormData } from '@/app/login/hooks/useLogin'; 
+import { SignIn } from '@clerk/nextjs';
 
 // Utility for high-end staggered typography animations
 const splitText = (text: string) => {
@@ -17,15 +16,11 @@ const splitText = (text: string) => {
 };
 
 export default function LoginPage() {
-  const { isLoading, isOtpSent, phoneNumber, handleSendOtp, handleVerifyOtp } = useLogin();
   
   const containerRef = useRef<HTMLDivElement>(null);
   const formWrapperRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  const { register: registerPhone, handleSubmit: handleSubmitPhone, formState: { errors: phoneErrors } } = useForm<PhoneFormData>();
-  const { register: registerOtp, handleSubmit: handleSubmitOtp, formState: { errors: otpErrors } } = useForm<OtpFormData>();
 
   // Smooth Cursor & Ambient Spotlight Logic
   useEffect(() => {
@@ -37,7 +32,7 @@ export default function LoginPage() {
     const render = () => {
       cursorX += (mouseX - cursorX) * 0.15;
       cursorY += (mouseY - cursorY) * 0.15;
-      gsap.set(cursorRef.current, { x: cursorX, y: cursorY });
+      if(cursorRef.current) gsap.set(cursorRef.current, { x: cursorX, y: cursorY });
       requestAnimationFrame(render);
     };
     window.addEventListener("mousemove", onMouseMove);
@@ -70,19 +65,6 @@ export default function LoginPage() {
     }, containerRef);
     return () => ctx.revert();
   }, []);
-
-  // Form Transition Animation (Phone -> OTP)
-  useLayoutEffect(() => {
-    if (isOtpSent && formWrapperRef.current) {
-      let ctx = gsap.context(() => {
-        gsap.fromTo(".otp-view", 
-          { opacity: 0, scale: 0.95, x: 20 },
-          { opacity: 1, scale: 1, x: 0, duration: 0.6, ease: "power3.out", delay: 0.1 }
-        );
-      }, formWrapperRef);
-      return () => ctx.revert();
-    }
-  }, [isOtpSent]);
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#030303] flex flex-col lg:flex-row text-white selection:bg-amber-500 selection:text-black cursor-none overflow-hidden relative font-sans">
@@ -128,109 +110,29 @@ export default function LoginPage() {
       </div>
 
       {/* =========================================
-          RIGHT SIDE: THE HIGH-END FORM
+          RIGHT SIDE: CLERK SIGN-IN
           ========================================= */}
       <div className="w-full lg:w-7/12 flex items-center justify-center p-6 sm:p-8 lg:p-16 relative z-10">
-        <div ref={formWrapperRef} className="w-full max-w-[440px] relative">
-          
-          {!isOtpSent ? (
-            /* --- STEP 1: PHONE NUMBER FORM --- */
-            <div className="fade-up phone-view bg-[#0a0a0a] border border-white/10 p-8 sm:p-10 rounded-[2rem] shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600" />
-              
-              <div className="mb-10">
-                <h2 className="text-3xl font-black tracking-tight mb-2">Welcome Back</h2>
-                <p className="text-white/50 font-medium">Enter your mobile number to securely sign in or create a new account.</p>
-              </div>
-              
-              <form onSubmit={handleSubmitPhone(handleSendOtp)} className="space-y-6">
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-bold text-white/80 mb-3">
-                    Mobile Number
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 border-r border-white/10 pr-3">
-                      <span className="text-white/40 font-bold text-lg">+91</span>
-                    </div>
-                    <input
-                      id="phone"
-                      type="tel"
-                      placeholder="00000 00000"
-                      {...registerPhone('phone', { 
-                        required: "Phone number is required",
-                        pattern: { value: /^[0-9]{10}$/, message: "Please enter a valid 10-digit number." }
-                      })}
-                      className="w-full bg-[#111] border border-white/10 rounded-2xl text-white pl-20 pr-4 py-4 text-xl font-medium focus:border-amber-500 focus:bg-amber-500/5 focus:outline-none transition-all placeholder:text-white/20"
-                      disabled={isLoading}
-                    />
-                  </div>
-                  {phoneErrors.phone && <span className="text-amber-500 text-sm font-bold mt-2 block">{phoneErrors.phone.message}</span>}
-                </div>
-
-                <div className="bg-white/5 rounded-xl p-4 flex items-start gap-3 text-sm text-white/50">
-                  <MapPin className="w-5 h-5 shrink-0 text-amber-500 mt-0.5" />
-                  <p>To show you relevant local issues, we will securely request your current location upon login.</p>
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={isLoading}
-                  className="w-full bg-white text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group text-lg"
-                >
-                  {isLoading ? 'Sending Code...' : 'Continue'} 
-                  {!isLoading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
-                </button>
-              </form>
-            </div>
-          ) : (
-            /* --- STEP 2: OTP VERIFICATION FORM --- */
-            <div className="otp-view bg-[#0a0a0a] border border-white/10 p-8 sm:p-10 rounded-[2rem] shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
-              
-              <div className="mb-10">
-                <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mb-6">
-                  <Smartphone className="w-6 h-6 text-white" />
-                </div>
-                <h2 className="text-3xl font-black tracking-tight mb-2">Check Your Phone</h2>
-                <p className="text-white/50 font-medium">
-                  We've sent a 6-digit verification code to <br/>
-                  <strong className="text-white tracking-wide block mt-1">+91 {phoneNumber}</strong>
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmitOtp(handleVerifyOtp)} className="space-y-8">
-                <div>
-                  <label htmlFor="otp" className="block text-sm font-bold text-white/80 mb-3">
-                    Verification Code
-                  </label>
-                  <input
-                    id="otp"
-                    type="text"
-                    placeholder="• • • • • •"
-                    maxLength={6}
-                    autoFocus
-                    {...registerOtp('otp', { 
-                      required: "Code is required",
-                      minLength: { value: 6, message: "Code must be exactly 6 digits." }
-                    })}
-                    className="w-full bg-[#111] border border-white/10 rounded-2xl text-center text-white py-5 text-4xl tracking-[0.5em] font-mono focus:border-amber-500 focus:bg-amber-500/5 focus:outline-none transition-all placeholder:text-white/10"
-                    disabled={isLoading}
-                  />
-                  {otpErrors.otp && <span className="text-amber-500 text-sm font-bold mt-2 block text-center">{otpErrors.otp.message}</span>}
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={isLoading}
-                  className="w-full bg-amber-500 text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-[0_0_30px_rgba(245,158,11,0.2)]"
-                >
-                  {isLoading ? 'Verifying...' : 'Secure Login'}
-                  {!isLoading && <ShieldCheck className="w-5 h-5" />}
-                </button>
-              </form>
-            </div>
-          )}
-          
+        <div ref={formWrapperRef} className="w-full max-w-[440px] relative fade-up">
+           <SignIn 
+             appearance={{
+               elements: {
+                 rootBox: "w-full",
+                 card: "bg-[#0a0a0a] border border-white/10 shadow-2xl rounded-[2rem]",
+                 headerTitle: "text-white",
+                 headerSubtitle: "text-white/50",
+                 socialButtonsBlockButton: "border-white/10 text-white hover:bg-white/5",
+                 socialButtonsBlockButtonText: "font-bold",
+                 dividerLine: "bg-white/10",
+                 dividerText: "text-white/50",
+                 formFieldLabel: "text-white/80 font-bold",
+                 formFieldInput: "bg-[#111] border-white/10 text-white focus:border-amber-500 rounded-xl",
+                 formButtonPrimary: "bg-amber-500 hover:bg-amber-600 text-black font-black",
+                 footerActionText: "text-white/50",
+                 footerActionLink: "text-amber-500 hover:text-amber-400"
+               }
+             }}
+           />
         </div>
       </div>
     </div>

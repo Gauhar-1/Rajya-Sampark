@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "connect-src 'self' https://api.cloudinary.com https://rajya-sampark.onrender.com http://localhost:3000 https://*.cloudworkstations.dev;"
+            value: "connect-src 'self' https://api.cloudinary.com;"
           }
         ],
       },

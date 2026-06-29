@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import QueryProvider from '@/providers/QueryProvider';
-
+import { ClerkProvider } from '@clerk/nextjs';
 
 const bungee = Bungee({
   weight: '400',
@@ -44,37 +44,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body
-        className={`
-          ${geistSans.variable} 
-          ${geistMono.variable} 
-          ${bungee.variable} 
-          antialiased 
-          bg-[#0A0A0A] 
-          text-[#E0E0E0] 
-          selection:bg-[#FFDE00] 
-          selection:text-black
-          overflow-x-hidden
-        `}
-      >
-        
-
-        <AuthProvider>
-          <QueryProvider>
-            <div className="relative flex flex-col min-h-screen">
-              {/* TACTICAL BORDER */}
-              <div className="hidden md:block fixed inset-4 border border-white/5 pointer-events-none z-50" />
+    <ClerkProvider>
+      <html lang="en" className="dark">
+        <body
+          className={`
+            ${geistSans.variable} 
+            ${geistMono.variable} 
+            ${bungee.variable} 
+            antialiased 
+            bg-[#0A0A0A] 
+            text-[#E0E0E0] 
+            selection:bg-[#FFDE00] 
+            selection:text-black
+            overflow-x-hidden
+          `}
+        >
+          <AuthProvider>
+            <QueryProvider>
+              <div className="relative flex flex-col min-h-screen">
+                {/* TACTICAL BORDER */}
+                <div className="hidden md:block fixed inset-4 border border-white/5 pointer-events-none z-50" />
+                
+                <AppLayout>
+                  {children}
+                </AppLayout>
+              </div>
               
-              <AppLayout>
-                {children}
-              </AppLayout>
-            </div>
-            
-            <Toaster />
-          </QueryProvider>
-        </AuthProvider>
-      </body>
-    </html>
+              <Toaster />
+            </QueryProvider>
+          </AuthProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
