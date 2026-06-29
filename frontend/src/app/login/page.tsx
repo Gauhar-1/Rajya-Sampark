@@ -23,21 +23,33 @@ export default function LoginPage() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Smooth Cursor & Ambient Spotlight Logic
+  // Smooth Cursor & Ambient Spotlight Logic
   useEffect(() => {
     let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
+    let frameId: number; // Store the active frame ID
+
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX; mouseY = e.clientY;
       setMousePos({ x: mouseX, y: mouseY });
     };
+
     const render = () => {
       cursorX += (mouseX - cursorX) * 0.15;
       cursorY += (mouseY - cursorY) * 0.15;
       if(cursorRef.current) gsap.set(cursorRef.current, { x: cursorX, y: cursorY });
-      requestAnimationFrame(render);
+      
+      // Continually update the frame ID
+      frameId = requestAnimationFrame(render); 
     };
+
     window.addEventListener("mousemove", onMouseMove);
-    const ticker = requestAnimationFrame(render);
-    return () => { window.removeEventListener("mousemove", onMouseMove); cancelAnimationFrame(ticker); };
+    frameId = requestAnimationFrame(render); 
+
+    return () => { 
+      window.removeEventListener("mousemove", onMouseMove); 
+      // Successfully cancel the active loop
+      cancelAnimationFrame(frameId); 
+    };
   }, []);
 
   // Mount Animations
