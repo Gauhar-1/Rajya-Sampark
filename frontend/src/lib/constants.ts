@@ -8,7 +8,7 @@ export interface NavLink {
 }
 
 export const NAV_LINKS: NavLink[] = [
- { href: '/', label: 'Home (Feed)', icon: Home },
+ { href: '/feed', label: 'Home (Feed)', icon: Home },
   { href: '/candidates', label: 'Candidate Directory', icon: Users },
   { href: '/timeline', label: 'Election Timeline', icon: CalendarDays },
   { href: '/manifesto-summarizer', label: 'Manifesto Summaries', icon: FileText },
